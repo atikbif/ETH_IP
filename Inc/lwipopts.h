@@ -56,7 +56,7 @@
 /*----- Default Value for MEMP_NUM_PBUF: 16 ---*/
 #define MEMP_NUM_PBUF 24
 /*----- Default Value for MEMP_NUM_TCP_PCB_LISTEN: 8 ---*/
-#define MEMP_NUM_TCP_PCB_LISTEN 1
+#define MEMP_NUM_TCP_PCB_LISTEN 8
 /*----- Default Value for MEMP_NUM_TCP_SEG: 16 ---*/
 #define MEMP_NUM_TCP_SEG 9
 /*----- Value in opt.h for LWIP_ETHERNET: LWIP_ARP || PPPOE_SUPPORT -*/

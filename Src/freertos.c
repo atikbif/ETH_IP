@@ -92,6 +92,7 @@ osThreadId defaultTaskHandle;
 /* USER CODE BEGIN FunctionPrototypes */
 
 extern void tcp_server_init(void);
+extern void http_server_init(void);
    
 /* USER CODE END FunctionPrototypes */
 
@@ -144,7 +145,7 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 256);
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 512);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -171,6 +172,7 @@ void StartDefaultTask(void const * argument)
 
   /* USER CODE BEGIN StartDefaultTask */
   tcp_server_init();
+  http_server_init();
   /* Infinite loop */
   for(;;)
   {
@@ -178,7 +180,7 @@ void StartDefaultTask(void const * argument)
     //if(can_tmr==0)
     	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     can_tmr++;
-    //HAL_IWDG_Refresh(&hiwdg);
+    HAL_IWDG_Refresh(&hiwdg);
   }
   /* USER CODE END StartDefaultTask */
 }
