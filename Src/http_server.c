@@ -16,6 +16,35 @@
 #include "lwip/apps/fs.h"
 #include <string.h>
 
+static const unsigned char PAGE_HEADER_200_OK[] = {
+  //"HTTP/1.1 200 OK"
+  0x48,0x54,0x54,0x50,0x2f,0x31,0x2e,0x31,0x20,0x32,0x30,0x30,0x20,0x4f,0x4b,0x0d,
+  0x0a,
+  //zero
+  0x00
+};
+
+static char PAGE_BODY[768];
+uint16_t len = 0;
+
+static const unsigned char PAGE_HEADER_SERVER[] = {
+  //"Server: lwIP/1.3.1 (http://savannah.nongnu.org/projects/lwip)"
+  0x53,0x65,0x72,0x76,0x65,0x72,0x3a,0x20,0x6c,0x77,0x49,0x50,0x2f,0x31,0x2e,0x33,
+  0x2e,0x31,0x20,0x28,0x68,0x74,0x74,0x70,0x3a,0x2f,0x2f,0x73,0x61,0x76,0x61,0x6e,
+  0x6e,0x61,0x68,0x2e,0x6e,0x6f,0x6e,0x67,0x6e,0x75,0x2e,0x6f,0x72,0x67,0x2f,0x70,
+  0x72,0x6f,0x6a,0x65,0x63,0x74,0x73,0x2f,0x6c,0x77,0x69,0x70,0x29,0x0d,0x0a,
+  //zero
+  0x00
+};
+static const unsigned char PAGE_HEADER_CONTENT_TEXT[] = {
+  //"Content-type: text/html"
+  0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x4C,0x65,0x6E,0x67,0x74,0x68,0x3a,0x20,0x34,0x0d,0x0a,
+  0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x74,0x79,0x70,0x65,0x3a,0x20,0x74,0x65,
+  0x78,0x74,0x2f,0x68,0x74,0x6d,0x6c,0x0d,0x0a,0x0d,0x0a,
+  //zero
+  0x00
+};
+
 #define HTTPSERVER_THREAD_PRIO  ( tskIDLE_PRIORITY + 4 )
 
 typedef struct struct_client_socket_t {
@@ -26,97 +55,15 @@ typedef struct struct_client_socket_t {
 } struct_client_socket;
 struct_client_socket client_socket01;
 
-static unsigned char buf[512];
-
 static void http_server_thread(void *arg)
 {
-
-	//int sock, accept_sock, ret;
-	//struct sockaddr_in address, remotehost;
-	//socklen_t sockaddrsize;
 	struct fs_file file;
-	/*if ((sock = socket(AF_INET,SOCK_STREAM, 0)) >= 0)
-	{
-		address.sin_family = AF_INET;
-		address.sin_port = htons(80);
-		address.sin_addr.s_addr = INADDR_ANY;
-		if (bind(sock, (struct sockaddr *)&address, sizeof (address)) ==  0)
-		{
-			listen(sock, 8);
-			for(;;)
-			{
-				accept_sock = accept(sock, (struct sockaddr *)&remotehost, (socklen_t *)&sockaddrsize);
-				if(accept_sock >= 0)
-				{
-					ret = recvfrom(accept_sock, buf, 512, 0, (struct sockaddr *)&remotehost, &sockaddrsize);
-					if(ret > 0)
-					{
-						if ((ret >=5) && (strncmp((char const *)buf, "GET /", 5) == 0))
-						{
-							if ((strncmp((char const *)buf,"GET / ",6)==0)||(strncmp((char const *)buf,"GET /index.html",15)==0))
-							{
-								fs_open(&file, "/index.html");
-								write(accept_sock, (const unsigned char*)(file.data), (size_t)file.len);
-								fs_close(&file);
-							}
-							else if (strncmp((char const *)buf,"GET /index1.html",16)==0)
-							{
-								fs_open(&file, "/index1.html");
-								write(accept_sock, (const unsigned char*)(file.data), (size_t)file.len);
-								fs_close(&file);
-							}
-							else if (strncmp((char const *)buf,"GET /favicon.ico",16)==0)
-							{
-								fs_open(&file, "/favicon.ico");
-								write(accept_sock, (const unsigned char*)(file.data), (size_t)file.len);
-								fs_close(&file);
-							}
-							else if (strncmp((char const *)buf,"GET /IMG/img01.jpg",18)==0)
-							{
-								fs_open(&file, "/IMG/img01.jpg");
-								write(accept_sock, (const unsigned char*)(file.data), (size_t)file.len);
-								fs_close(&file);
-							}
-							else if (strncmp((char const *)buf,"GET /IMG/img02.jpg",18)==0)
-							{
-								fs_open(&file, "/IMG/img02.jpg");
-								write(accept_sock, (const unsigned char*)(file.data), (size_t)file.len);
-								fs_close(&file);
-							}
-							else if (strncmp((char const *)buf,"GET /IMG/img03.jpg",18)==0)
-							{
-								fs_open(&file, "/IMG/img03.jpg");
-								write(accept_sock, (const unsigned char*)(file.data), (size_t)file.len);
-								fs_close(&file);
-							}
-							else if (strncmp((char const *)buf,"GET /IMG/img04.jpg",18)==0)
-							{
-								fs_open(&file, "/IMG/img04.jpg");
-								write(accept_sock, (const unsigned char*)(file.data), (size_t)file.len);
-								fs_close(&file);
-							}
-							else
-							{
-								fs_open(&file, "/404.html");
-								write(accept_sock, (const unsigned char*)(file.data), (size_t)file.len);
-								fs_close(&file);
-							}
-						}
-					}
-					close(accept_sock);
-				}
-			}
-		}else
-	    {
-	      close(sock);
-	      return;
-	    }
-	}*/
 	struct netconn *conn, *newconn;
 	  err_t err, accept_err;
 	  struct netbuf *buf;
 	  void *data;
 	  u16_t len;
+	  u16_t pc1='1';
 
 	  LWIP_UNUSED_ARG(arg);
 
@@ -185,6 +132,18 @@ static void http_server_thread(void *arg)
 							fs_open(&file, "/IMG/img04.jpg");
 							netconn_write(newconn, file.data, file.len, NETCONN_COPY);
 							fs_close(&file);
+						}else if(strncmp((char const *)data,"GET /write.html?pc=",19)==0) {
+
+						}else if(strncmp((char const *)data,"GET /reset.html",15)==0) {
+
+						}else if(strncmp((char const *)data,"GET /read.html",14)==0) {
+							sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_CONTENT_TEXT);
+							len = strlen(PAGE_BODY);
+							PAGE_BODY[len++] = pc1++;if(pc1>='5') pc1='1';
+							PAGE_BODY[len++] = '2';
+							PAGE_BODY[len++] = '1';
+							PAGE_BODY[len++] = '3';
+							netconn_write(newconn, PAGE_BODY, len, NETCONN_COPY);
 						}
 						else
 						{

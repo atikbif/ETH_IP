@@ -54,6 +54,7 @@
 #include "can.h"
 #include "iwdg.h"
 #include "lwip.h"
+#include "rng.h"
 #include "rtc.h"
 #include "gpio.h"
 
@@ -127,6 +128,7 @@ int main(void)
   MX_RTC_Init();
   MX_CAN1_Init();
   //MX_IWDG_Init();
+  MX_RNG_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -174,7 +176,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLM = 25;
   RCC_OscInitStruct.PLL.PLLN = 256;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 4;
+  RCC_OscInitStruct.PLL.PLLQ = 8;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();

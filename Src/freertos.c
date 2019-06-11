@@ -180,7 +180,7 @@ void StartDefaultTask(void const * argument)
     //if(can_tmr==0)
     	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     can_tmr++;
-    HAL_IWDG_Refresh(&hiwdg);
+    //HAL_IWDG_Refresh(&hiwdg);
   }
   /* USER CODE END StartDefaultTask */
 }

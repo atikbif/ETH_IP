@@ -454,23 +454,18 @@ void canViewerTask(void const * argument) {
 								}else if(word_value>=2050) {
 									answer_90[pos] = 0xF7;
 								}else answer_90[pos] = 0xFF;
-								if(RxData[4]) answer_90[pos] = 0xFD;
+								//if(RxData[4]) answer_90[pos] = 0xFD;
 							}else if(RxData[3]==0x04)
 							{
-								//pos--;
-								//answer_90[pos++] = RxData[7];
-								//answer_90[pos] = RxData[6];
-								//word_value = word_value/2;
-								if(word_value<=180*2) {
+								if(word_value<=176*2) {
 									answer_90[pos] = 0xFD;
-								}else if(word_value<=180*3.5) { // 350
+								}else if(word_value<=176*3.5) { // 350
 									answer_90[pos] = 0xEF;
-								}else if(word_value>=180*22) {
+								}else if(word_value>=176*22) {
 									answer_90[pos] = 0xFD;
-								}else if(word_value>=180*20.5) {
+								}else if(word_value>=176*20.5) {
 									answer_90[pos] = 0xF7;
 								}else answer_90[pos] = 0xFF;
-								//if(RxData[4]) answer_90[pos] = 0xFD;
 							}else {
 								if(RxData[4]) answer_90[pos] = 0xFD;
 								else answer_90[pos] = 0xFF;
