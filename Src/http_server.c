@@ -38,7 +38,7 @@ static const unsigned char PAGE_HEADER_SERVER[] = {
 };
 static const unsigned char PAGE_HEADER_CONTENT_TEXT[] = {
   //"Content-type: text/html"
-  0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x4C,0x65,0x6E,0x67,0x74,0x68,0x3a,0x20,0x34,0x0d,0x0a,
+  0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x4C,0x65,0x6E,0x67,0x74,0x68,0x3a,0x20,0x39,0x0d,0x0a,
   0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x74,0x79,0x70,0x65,0x3a,0x20,0x74,0x65,
   0x78,0x74,0x2f,0x68,0x74,0x6d,0x6c,0x0d,0x0a,0x0d,0x0a,
   //zero
@@ -63,7 +63,6 @@ static void http_server_thread(void *arg)
 	  struct netbuf *buf;
 	  void *data;
 	  u16_t len;
-	  u16_t pc1='1';
 
 	  LWIP_UNUSED_ARG(arg);
 
@@ -132,17 +131,44 @@ static void http_server_thread(void *arg)
 							fs_open(&file, "/IMG/img04.jpg");
 							netconn_write(newconn, file.data, file.len, NETCONN_COPY);
 							fs_close(&file);
-						}else if(strncmp((char const *)data,"GET /write.html?pc=",19)==0) {
-
+						}else if(strncmp((char const *)data,"GET /write.html?node=",21)==0) {
+							sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_CONTENT_TEXT);
+							len = strlen(PAGE_BODY);
+							PAGE_BODY[len++] = '1';
+							PAGE_BODY[len++] = '0';
+							PAGE_BODY[len++] = '1';
+							PAGE_BODY[len++] = '2';
+							PAGE_BODY[len++] = '0';
+							PAGE_BODY[len++] = '3';
+							PAGE_BODY[len++] = '0';
+							PAGE_BODY[len++] = '0';
+							PAGE_BODY[len++] = '0';
+							netconn_write(newconn, PAGE_BODY, len, NETCONN_COPY);
 						}else if(strncmp((char const *)data,"GET /reset.html",15)==0) {
-
+							sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_CONTENT_TEXT);
+							len = strlen(PAGE_BODY);
+							PAGE_BODY[len++] = '1';
+							PAGE_BODY[len++] = '0';
+							PAGE_BODY[len++] = '1';
+							PAGE_BODY[len++] = '2';
+							PAGE_BODY[len++] = '0';
+							PAGE_BODY[len++] = '3';
+							PAGE_BODY[len++] = '0';
+							PAGE_BODY[len++] = '0';
+							PAGE_BODY[len++] = '0';
+							netconn_write(newconn, PAGE_BODY, len, NETCONN_COPY);
 						}else if(strncmp((char const *)data,"GET /read.html",14)==0) {
 							sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_CONTENT_TEXT);
 							len = strlen(PAGE_BODY);
-							PAGE_BODY[len++] = pc1++;if(pc1>='5') pc1='1';
-							PAGE_BODY[len++] = '2';
 							PAGE_BODY[len++] = '1';
+							PAGE_BODY[len++] = '0';
+							PAGE_BODY[len++] = '1';
+							PAGE_BODY[len++] = '2';
+							PAGE_BODY[len++] = '0';
 							PAGE_BODY[len++] = '3';
+							PAGE_BODY[len++] = '0';
+							PAGE_BODY[len++] = '0';
+							PAGE_BODY[len++] = '0';
 							netconn_write(newconn, PAGE_BODY, len, NETCONN_COPY);
 						}
 						else

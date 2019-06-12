@@ -81,6 +81,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 
+uint16_t key_tmr = 0;
 extern uint16_t can_tmr;
 extern IWDG_HandleTypeDef hiwdg;
 osThreadId canViewerTaskHandle;
@@ -173,14 +174,19 @@ void StartDefaultTask(void const * argument)
   /* USER CODE BEGIN StartDefaultTask */
   tcp_server_init();
   http_server_init();
+  MX_IWDG_Init();
   /* Infinite loop */
   for(;;)
   {
-    osDelay(100);
-    //if(can_tmr==0)
-    	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    can_tmr++;
-    //HAL_IWDG_Refresh(&hiwdg);
+	  if(HAL_GPIO_ReadPin(KEY_GPIO_Port,KEY_Pin)==GPIO_PIN_RESET) key_tmr++;else key_tmr = 0;
+	  if(key_tmr>=10*3) {
+		  NVIC_SystemReset();
+	  }
+	  osDelay(100);
+	  //if(can_tmr==0)
+		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	  can_tmr++;
+	  HAL_IWDG_Refresh(&hiwdg);
   }
   /* USER CODE END StartDefaultTask */
 }

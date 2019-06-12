@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <script>
+	  var xhr;
+	  function onload(){
+		xhr = new(XMLHttpRequest);
+		read_data();
+	  }
+	  function read_data(){
+		xhr.open("GET", "read.html?c=1", true);
+		xhr.responseType = "text";
+		xhr.send(null);
+		
+		xhr.open("GET", "read.html?r=" + Math.random(), true); 
+		xhr.responseType = "text";
+		xhr.onload = function (oEvent) {
+			document.getElementById('version_high').innerHTML = xhr.response[0];
+			document.getElementById('version_low').innerHTML = xhr.response[1];
+			document.getElementById('node0').value = xhr.response[2];
+			document.getElementById('node1').value = xhr.response[3];
+			document.getElementById('node2').value = xhr.response[4];
+			document.getElementById('node3').value = xhr.response[5];
+			document.getElementById('node4').value = xhr.response[6];
+			document.getElementById('node5').value = xhr.response[7];
+			document.getElementById('node6').value = xhr.response[8];
+		}
+		xhr.send(null);
+	  }
+	  function write_data(){
+		var count = 0;
+		var pc_name = "node";	
+		var	res = "";
+		while (count < 7) {
+			var node = document.getElementById(pc_name+(count));
+			var value = node.options[node.selectedIndex].value;
+			res+=value;
+			count++;
+		}
+		xhr.open("GET", "write.html?node="+res, true);
+		xhr.responseType = "text";
+		xhr.send(null);
+	  }
+	  function reset_device(){
+		xhr.open("GET", "reset.html", true);
+		xhr.responseType = "text";
+		xhr.send(null);
+	  }
+  </script>
+  <title>НАСТРОЙКА PC21-FE</title>
+</head>
+<body onload="onload()">
+<h1 style="text-align: center;">НАСТРОЙКА PC21-FE</h1>
+<p id="debug"></p>
+<p style="text-align: center;">
+Версия:<b id="version_high"></b>.<b id="version_low"></b>
+<br><br>
+Node 0:
+<select id="node0">
+  <option value="0">нет</option>
+  <option value="1">PC21-1</option>
+</select>
+&nbsp;&nbsp;
+Node 1:
+<select id="node1">
+  <option value="0">нет</option>
+  <option value="2">PC21-CD</option>
+  <option value="1">PC21-1</option>
+</select>
+Node 2:
+<select id="node2">
+  <option value="0">нет</option>
+  <option value="1">PC21-1</option>
+</select>
+&nbsp;&nbsp;
+Node 3:
+<select id="node3">
+  <option value="0">нет</option>
+  <option value="3">PC21-MC</option>
+  <option value="1">PC21-1</option>
+</select>
+Node 4:
+<select id="node4">
+  <option value="0">нет</option>
+  <option value="1">PC21-1</option>
+</select>
+&nbsp;&nbsp;
+Node 5:
+<select id="node5">
+  <option value="0">нет</option>
+  <option value="1">PC21-1</option>
+</select>
+Node 6:
+<select id="node6">
+  <option value="0">нет</option>
+  <option value="1">PC21-1</option>
+</select>
+<br><br>
+<input class = "butcolor" type="button" style="color: #000000; background-color: #e0e0e0;font-size: 20px;" onclick="read_data()" value="Прочитать"/>
+<input class = "butcolor" type="button" style="color: #000000; background-color: #e0e0e0;font-size: 20px;" onclick="write_data()" value=" Записать "/>
+<input class = "butcolor" type="button" style="color: #000000; background-color: #e0e0e0;font-size: 20px;" onclick="reset_device()" value="Перезапуск"/>
+</p>
+
