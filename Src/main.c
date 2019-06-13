@@ -96,7 +96,7 @@ void MX_FREERTOS_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-uint8_t conf[64];
+uint8_t conf[64];	// буфер с настройками
 
 static void EnableBKUPmem(void)
 {
@@ -185,19 +185,22 @@ void set_default_conf() {
 	conf[9] = '0';// node 5
 	conf[10] = '0';// node 6
 
+	// IP адрес
 	conf[11] = '1';conf[12] = '9';conf[13] = '2';
 	conf[14] = '1';conf[15] = '6';conf[16] = '8';
-	conf[17] = '0';conf[18] = '1';conf[19] = '0';
-	conf[20] = '0';conf[21] = '1';conf[22] = '0';
+	conf[17] = '0';conf[18] = '0';conf[19] = '1';
+	conf[20] = '0';conf[21] = '0';conf[22] = '2';
 
+	// маска
 	conf[23] = '2';conf[24] = '5';conf[25] = '5';
 	conf[26] = '2';conf[27] = '5';conf[28] = '5';
 	conf[29] = '2';conf[30] = '5';conf[31] = '5';
 	conf[32] = '0';conf[33] = '0';conf[34] = '0';
 
+	// шлюз
 	conf[35] = '1';conf[36] = '9';conf[37] = '2';
 	conf[38] = '1';conf[39] = '6';conf[40] = '8';
-	conf[41] = '0';conf[42] = '1';conf[43] = '0';
+	conf[41] = '0';conf[42] = '0';conf[43] = '1';
 	conf[44] = '0';conf[45] = '0';conf[46] = '1';
 
 	write_conf();

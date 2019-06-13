@@ -43,6 +43,8 @@ extern uint8_t ob_time_upd;
 extern uint8_t eth_ip_state;
 extern uint16_t eth_ip_tmr;
 
+extern uint8_t conf[64];
+
 static uint16_t node_tmr[7] = {0,0,0,0,0,0,0};
 
 static uint16_t clusters_tmr = 0;
