@@ -47,6 +47,23 @@ uint8_t GATEWAY_ADDRESS[4];
 
 /* USER CODE BEGIN 2 */
 
+extern uint8_t read_ip_from_conf(uint8_t num);
+extern uint8_t read_mask_from_conf(uint8_t num);
+extern uint8_t read_gate_from_conf(uint8_t num);
+
+/*IP_ADDRESS[0] = read_ip_from_conf(1);
+IP_ADDRESS[1] = read_ip_from_conf(2);
+IP_ADDRESS[2] = read_ip_from_conf(3);
+IP_ADDRESS[3] = read_ip_from_conf(4);
+NETMASK_ADDRESS[0] = read_mask_from_conf(1);
+NETMASK_ADDRESS[1] = read_mask_from_conf(2);
+NETMASK_ADDRESS[2] = read_mask_from_conf(3);
+NETMASK_ADDRESS[3] = read_mask_from_conf(4);
+GATEWAY_ADDRESS[0] = read_gate_from_conf(1);
+GATEWAY_ADDRESS[1] = read_gate_from_conf(2);
+GATEWAY_ADDRESS[2] = read_gate_from_conf(3);
+GATEWAY_ADDRESS[3] = read_gate_from_conf(4);*/
+
 /* USER CODE END 2 */
 
 /**
@@ -55,18 +72,18 @@ uint8_t GATEWAY_ADDRESS[4];
 void MX_LWIP_Init(void)
 {
   /* IP addresses initialization */
-  IP_ADDRESS[0] = 192;
-  IP_ADDRESS[1] = 168;
-  IP_ADDRESS[2] = 2;
-  IP_ADDRESS[3] = 102;
-  NETMASK_ADDRESS[0] = 255;
-  NETMASK_ADDRESS[1] = 255;
-  NETMASK_ADDRESS[2] = 255;
-  NETMASK_ADDRESS[3] = 0;
-  GATEWAY_ADDRESS[0] = 192;
-  GATEWAY_ADDRESS[1] = 168;
-  GATEWAY_ADDRESS[2] = 2;
-  GATEWAY_ADDRESS[3] = 1;
+	IP_ADDRESS[0] = read_ip_from_conf(1);
+	IP_ADDRESS[1] = read_ip_from_conf(2);
+	IP_ADDRESS[2] = read_ip_from_conf(3);
+	IP_ADDRESS[3] = read_ip_from_conf(4);
+	NETMASK_ADDRESS[0] = read_mask_from_conf(1);
+	NETMASK_ADDRESS[1] = read_mask_from_conf(2);
+	NETMASK_ADDRESS[2] = read_mask_from_conf(3);
+	NETMASK_ADDRESS[3] = read_mask_from_conf(4);
+	GATEWAY_ADDRESS[0] = read_gate_from_conf(1);
+	GATEWAY_ADDRESS[1] = read_gate_from_conf(2);
+	GATEWAY_ADDRESS[2] = read_gate_from_conf(3);
+	GATEWAY_ADDRESS[3] = read_gate_from_conf(4);
   
   /* Initilialize the LwIP stack with RTOS */
   tcpip_init( NULL, NULL );

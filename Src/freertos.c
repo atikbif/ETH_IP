@@ -94,6 +94,7 @@ osThreadId defaultTaskHandle;
 
 extern void tcp_server_init(void);
 extern void http_server_init(void);
+extern void set_default_conf();
    
 /* USER CODE END FunctionPrototypes */
 
@@ -180,11 +181,13 @@ void StartDefaultTask(void const * argument)
   {
 	  if(HAL_GPIO_ReadPin(KEY_GPIO_Port,KEY_Pin)==GPIO_PIN_RESET) key_tmr++;else key_tmr = 0;
 	  if(key_tmr>=10*3) {
+		  set_default_conf();
+		  HAL_Delay(100);
 		  NVIC_SystemReset();
 	  }
 	  osDelay(100);
 	  //if(can_tmr==0)
-		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+		 HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 	  can_tmr++;
 	  HAL_IWDG_Refresh(&hiwdg);
   }

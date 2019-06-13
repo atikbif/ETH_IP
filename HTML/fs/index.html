@@ -2,6 +2,15 @@
 <html lang="en">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <style type="text/css">
+  .onlythree{    
+width: 50px;      
+}    
+div{    
+border: 1px solid gray;    
+display: inline-block;    
+}  
+  </style>
   <script>
 	  var xhr;
 	  function onload(){
@@ -9,10 +18,6 @@
 		read_data();
 	  }
 	  function read_data(){
-		xhr.open("GET", "read.html?c=1", true);
-		xhr.responseType = "text";
-		xhr.send(null);
-		
 		xhr.open("GET", "read.html?r=" + Math.random(), true); 
 		xhr.responseType = "text";
 		xhr.onload = function (oEvent) {
@@ -25,6 +30,18 @@
 			document.getElementById('node4').value = xhr.response[6];
 			document.getElementById('node5').value = xhr.response[7];
 			document.getElementById('node6').value = xhr.response[8];
+			var s = xhr.response[9]+xhr.response[10]+xhr.response[11];if(!isNaN(s)) document.getElementById('ip1').value = s;else document.getElementById('ip1').value = "000";
+			s = xhr.response[12]+xhr.response[13]+xhr.response[14];if(!isNaN(s)) document.getElementById('ip2').value = s;else document.getElementById('ip2').value = "000";
+			s = xhr.response[15]+xhr.response[16]+xhr.response[17];if(!isNaN(s)) document.getElementById('ip3').value = s;else document.getElementById('ip3').value = "000";
+			s = xhr.response[18]+xhr.response[19]+xhr.response[20];if(!isNaN(s)) document.getElementById('ip4').value = s;else document.getElementById('ip4').value = "000";
+			s = xhr.response[21]+xhr.response[22]+xhr.response[23];if(!isNaN(s)) document.getElementById('mask1').value = s;else document.getElementById('mask1').value = "000";
+			s = xhr.response[24]+xhr.response[25]+xhr.response[26];if(!isNaN(s)) document.getElementById('mask2').value = s;else document.getElementById('mask2').value = "000";
+			s = xhr.response[27]+xhr.response[28]+xhr.response[29];if(!isNaN(s)) document.getElementById('mask3').value = s;else document.getElementById('mask3').value = "000";
+			s = xhr.response[30]+xhr.response[31]+xhr.response[32];if(!isNaN(s)) document.getElementById('mask4').value = s;else document.getElementById('mask4').value = "000";
+			s = xhr.response[33]+xhr.response[34]+xhr.response[35];if(!isNaN(s)) document.getElementById('gate1').value = s;else document.getElementById('gate1').value = "000";
+			s = xhr.response[36]+xhr.response[37]+xhr.response[38];if(!isNaN(s)) document.getElementById('gate2').value = s;else document.getElementById('gate2').value = "000";
+			s = xhr.response[39]+xhr.response[40]+xhr.response[41];if(!isNaN(s)) document.getElementById('gate3').value = s;else document.getElementById('gate3').value = "000";
+			s = xhr.response[42]+xhr.response[43]+xhr.response[44];if(!isNaN(s)) document.getElementById('gate4').value = s;else document.getElementById('gate4').value = "000";
 		}
 		xhr.send(null);
 	  }
@@ -38,6 +55,21 @@
 			res+=value;
 			count++;
 		}
+		var ip1=document.getElementById('ip1').value; while(ip1.length<3) ip1='0'+ip1;if(isNaN(ip1)) res+="000";else res+=ip1;
+		var ip2=document.getElementById('ip2').value; while(ip2.length<3) ip2='0'+ip2;if(isNaN(ip2)) res+="000";else res+=ip2;
+		var ip3=document.getElementById('ip3').value; while(ip3.length<3) ip3='0'+ip3;if(isNaN(ip3)) res+="000";else res+=ip3;
+		var ip4=document.getElementById('ip4').value; while(ip4.length<3) ip4='0'+ip4;if(isNaN(ip4)) res+="000";else res+=ip4;
+		
+		var mask1=document.getElementById('mask1').value; while(mask1.length<3) mask1='0'+mask1;if(isNaN(mask1)) res+="000";else res+=mask1;
+		var mask2=document.getElementById('mask2').value; while(mask2.length<3) mask2='0'+mask2;if(isNaN(mask2)) res+="000";else res+=mask2;
+		var mask3=document.getElementById('mask3').value; while(mask3.length<3) mask3='0'+mask3;if(isNaN(mask3)) res+="000";else res+=mask3;
+		var mask4=document.getElementById('mask4').value; while(mask4.length<3) mask4='0'+mask4;if(isNaN(mask4)) res+="000";else res+=mask4;
+		
+		var gate1=document.getElementById('gate1').value; while(gate1.length<3) gate1='0'+gate1;if(isNaN(gate1)) res+="000";else res+=gate1;
+		var gate2=document.getElementById('gate2').value; while(gate2.length<3) gate2='0'+gate2;if(isNaN(gate2)) res+="000";else res+=gate2;
+		var gate3=document.getElementById('gate3').value; while(gate3.length<3) gate3='0'+gate3;if(isNaN(gate3)) res+="000";else res+=gate3;
+		var gate4=document.getElementById('gate4').value; while(gate4.length<3) gate4='0'+gate4;if(isNaN(gate4)) res+="000";else res+=gate4;
+		
 		xhr.open("GET", "write.html?node="+res, true);
 		xhr.responseType = "text";
 		xhr.send(null);
@@ -46,8 +78,9 @@
 		xhr.open("GET", "reset.html", true);
 		xhr.responseType = "text";
 		xhr.send(null);
-	  }
+	  }  
   </script>
+  
   <title>НАСТРОЙКА PC21-FE</title>
 </head>
 <body onload="onload()">
@@ -96,6 +129,24 @@ Node 6:
   <option value="0">нет</option>
   <option value="1">PC21-1</option>
 </select>
+<br><br> 
+IP адрес:   
+<input type="text" maxlength="3" class="onlythree" id="ip1"/>.    
+<input type="text" maxlength="3" class="onlythree" id="ip2"/>.    
+<input type="text" maxlength="3" class="onlythree" id="ip3"/>.    
+<input type="text" maxlength="3" class="onlythree" id="ip4"/>    
+<br><br>
+IP маска:   
+<input type="text" maxlength="3" class="onlythree" id="mask1"/>.    
+<input type="text" maxlength="3" class="onlythree" id="mask2"/>.    
+<input type="text" maxlength="3" class="onlythree" id="mask3"/>.    
+<input type="text" maxlength="3" class="onlythree" id="mask4"/>    
+<br><br>
+IP шлюз:   
+<input type="text" maxlength="3" class="onlythree" id="gate1"/>.    
+<input type="text" maxlength="3" class="onlythree" id="gate2"/>.    
+<input type="text" maxlength="3" class="onlythree" id="gate3"/>.    
+<input type="text" maxlength="3" class="onlythree" id="gate4"/>    
 <br><br>
 <input class = "butcolor" type="button" style="color: #000000; background-color: #e0e0e0;font-size: 20px;" onclick="read_data()" value="Прочитать"/>
 <input class = "butcolor" type="button" style="color: #000000; background-color: #e0e0e0;font-size: 20px;" onclick="write_data()" value=" Записать "/>

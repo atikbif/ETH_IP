@@ -106,6 +106,14 @@ static void tcp_server_thread(void *arg)
             while (netbuf_next(buf) >= 0);
           
             netbuf_delete(buf);
+
+            // close other connections
+
+            /*if (netconn_accept(conn, &otherconn) == ERR_OK){
+            	netconn_close(otherconn);
+			    netconn_delete(otherconn);
+            }*/
+
             if(close_flag) break;
           }
         

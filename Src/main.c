@@ -61,6 +61,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include <string.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -93,6 +95,113 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+uint8_t conf[64];
+
+static void EnableBKUPmem(void)
+{
+   RCC->APB1ENR |= RCC_APB1ENR_PWREN;
+   /* Enable backup SRAM Clock */
+   RCC->AHB1ENR |= RCC_AHB1ENR_BKPSRAMEN;
+   /* Allow access to backup domain */
+   HAL_PWR_EnableBkUpAccess();
+   /* Enable the Backup SRAM low power Regulator */
+   /* This will allow data to stay when using VBat mode */
+   //PWR_BackupRegulatorCmd(ENABLE);
+   *(__IO uint32_t *) CSR_BRE_BB = (uint32_t) ENABLE;
+   /* Wait for backup regulator to be ready  */
+   while (!(PWR->CSR & (PWR_FLAG_BRR)));
+}
+
+static void DisableBKUPmem(void)
+{
+   HAL_PWR_DisableBkUpAccess();
+}
+
+uint8_t read_ip_from_conf(uint8_t num) {
+	if(num==1) {
+		return (conf[11]-'0')*100 + (conf[12]-'0')*10 + (conf[13]-'0');
+	}else if(num==2) {
+		return (conf[14]-'0')*100 + (conf[15]-'0')*10 + (conf[16]-'0');
+	}else if(num==3) {
+		return (conf[17]-'0')*100 + (conf[18]-'0')*10 + (conf[19]-'0');
+	}else if(num==4) {
+		return (conf[20]-'0')*100 + (conf[21]-'0')*10 + (conf[22]-'0');
+	}
+	return 0;
+}
+
+uint8_t read_mask_from_conf(uint8_t num) {
+	if(num==1) {
+		return (conf[23]-'0')*100 + (conf[24]-'0')*10 + (conf[25]-'0');
+	}else if(num==2) {
+		return (conf[26]-'0')*100 + (conf[27]-'0')*10 + (conf[28]-'0');
+	}else if(num==3) {
+		return (conf[29]-'0')*100 + (conf[30]-'0')*10 + (conf[31]-'0');
+	}else if(num==4) {
+		return (conf[32]-'0')*100 + (conf[33]-'0')*10 + (conf[34]-'0');
+	}
+	return 0;
+}
+
+uint8_t read_gate_from_conf(uint8_t num) {
+	if(num==1) {
+		return (conf[35]-'0')*100 + (conf[36]-'0')*10 + (conf[37]-'0');
+	}else if(num==2) {
+		return (conf[38]-'0')*100 + (conf[39]-'0')*10 + (conf[40]-'0');
+	}else if(num==3) {
+		return (conf[41]-'0')*100 + (conf[42]-'0')*10 + (conf[43]-'0');
+	}else if(num==4) {
+		return (conf[44]-'0')*100 + (conf[45]-'0')*10 + (conf[46]-'0');
+	}
+	return 0;
+}
+
+void read_conf() {
+	EnableBKUPmem();
+	memcpy(conf,(uint32_t*) BKPSRAM_BASE, sizeof(conf));
+	DisableBKUPmem();
+}
+
+void write_conf() {
+	EnableBKUPmem();
+	memcpy((uint32_t*)BKPSRAM_BASE, conf, sizeof(conf));
+	DisableBKUPmem();
+}
+
+void set_default_conf() {
+	// start key
+	conf[0] = 0xA5;
+	conf[1] = 0x4C;
+	// version
+	conf[2] = '1';
+	conf[3] = '0';
+
+	conf[4] = '1';// node 0 (PC21-1)
+	conf[5] = '2';// node 1 (PC21-CD)
+	conf[6] = '0';// node 2
+	conf[7] = '3';// node 3 (PC21-MC)
+	conf[8] = '0';// node 4
+	conf[9] = '0';// node 5
+	conf[10] = '0';// node 6
+
+	conf[11] = '1';conf[12] = '9';conf[13] = '2';
+	conf[14] = '1';conf[15] = '6';conf[16] = '8';
+	conf[17] = '0';conf[18] = '1';conf[19] = '0';
+	conf[20] = '0';conf[21] = '1';conf[22] = '0';
+
+	conf[23] = '2';conf[24] = '5';conf[25] = '5';
+	conf[26] = '2';conf[27] = '5';conf[28] = '5';
+	conf[29] = '2';conf[30] = '5';conf[31] = '5';
+	conf[32] = '0';conf[33] = '0';conf[34] = '0';
+
+	conf[35] = '1';conf[36] = '9';conf[37] = '2';
+	conf[38] = '1';conf[39] = '6';conf[40] = '8';
+	conf[41] = '0';conf[42] = '1';conf[43] = '0';
+	conf[44] = '0';conf[45] = '0';conf[46] = '1';
+
+	write_conf();
+}
 
 /* USER CODE END 0 */
 
@@ -130,6 +239,9 @@ int main(void)
   //MX_IWDG_Init();
   MX_RNG_Init();
   /* USER CODE BEGIN 2 */
+
+  read_conf();
+  if(conf[0]!=0xA5 || conf[1]!=0x4C) set_default_conf();
 
   /* USER CODE END 2 */
 
