@@ -112,83 +112,183 @@ static void info_net_work(uint16_t *tmr) {
 }
 
 static void telemetry_work(uint16_t *tmr) {
+	static uint8_t node_num = 0;
+	static uint8_t req_num = 0;
+	static uint8_t start_flag = 0;
+	static uint16_t req_period = 0;
 	(*tmr)++;
-	if((*tmr)==UPD_TIME) {	// device type
-		TxHeader.StdId = 0x400 | 0x3F;
-		TxHeader.ExtId = 0;
-		TxHeader.RTR = CAN_RTR_DATA;
-		TxHeader.IDE = CAN_ID_STD;
-		TxHeader.DLC = 3;
-		TxHeader.TransmitGlobalTime = DISABLE;
-		TxData[0] = 0x1F;
-		TxData[1] = 0x00;
-		TxData[2] = 0x0b;
-		HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
-	}else if((*tmr)==UPD_TIME+50) {	// id
-		TxHeader.StdId = 0x400 | 0x3F;
-		TxHeader.ExtId = 0;
-		TxHeader.RTR = CAN_RTR_DATA;
-		TxHeader.IDE = CAN_ID_STD;
-		TxHeader.DLC = 4;
-		TxHeader.TransmitGlobalTime = DISABLE;
-		TxData[0] = 0x1F;
-		TxData[1] = 0x03;
-		TxData[2] = 0x8F;
-		TxData[3] = 0x13;
-		HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
-	}else if((*tmr)==UPD_TIME+100) {	// telemetry tx mask (node-0, analog)
-		TxHeader.StdId = 0x06;
-		TxHeader.ExtId = 0;
-		TxHeader.RTR = CAN_RTR_DATA;
-		TxHeader.IDE = CAN_ID_STD;
-		TxHeader.DLC = 5;
-		TxHeader.TransmitGlobalTime = DISABLE;
-		TxData[0] = 0x0A;
-		TxData[1] = 0x01;
-		TxData[2] = 0xFF;
-		TxData[3] = 0x3F;
-		TxData[4] = 0x00;
-		HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
-	}else if((*tmr)==UPD_TIME+150) {	// telemetry tx mask (node-0, digital inp)
-		TxHeader.StdId = 0x06;
-		TxHeader.ExtId = 0;
-		TxHeader.RTR = CAN_RTR_DATA;
-		TxHeader.IDE = CAN_ID_STD;
-		TxHeader.DLC = 5;
-		TxHeader.TransmitGlobalTime = DISABLE;
-		TxData[0] = 0x0A;
-		TxData[1] = 0x01;
-		TxData[2] = 0xFF;
-		TxData[3] = 0x3F;
-		TxData[4] = 0x01;
-		HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
-	}else if((*tmr)==UPD_TIME+200) {	// telemetry tx mask (node-1, switch input)
-		TxHeader.StdId = 0x0E;
-		TxHeader.ExtId = 0;
-		TxHeader.RTR = CAN_RTR_DATA;
-		TxHeader.IDE = CAN_ID_STD;
-		TxHeader.DLC = 5;
-		TxHeader.TransmitGlobalTime = DISABLE;
-		TxData[0] = 0x0A;
-		TxData[1] = 0x01;
-		TxData[2] = 0xFF;
-		TxData[3] = 0x00;
-		TxData[4] = 0x02;
-		HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
-	}/*else if((*tmr)==UPD_TIME+250) {	// telemetry tx mask (node-3, analog)
-		TxHeader.StdId = 0x06 | (0x03<<3);
-		TxHeader.ExtId = 0;
-		TxHeader.RTR = CAN_RTR_DATA;
-		TxHeader.IDE = CAN_ID_STD;
-		TxHeader.DLC = 5;
-		TxHeader.TransmitGlobalTime = DISABLE;
-		TxData[0] = 0x0A;
-		TxData[1] = 0x01;
-		TxData[2] = 0xFF;
-		TxData[3] = 0x3F;
-		TxData[4] = 0x00;
-		HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
-	}*/else if((*tmr)>UPD_TIME+250) {(*tmr)=0;}
+	if((*tmr)==UPD_TIME) {(*tmr)=0;start_flag = 1;req_period=50;node_num=0;req_num=0;}	// начало цикла
+	if(start_flag) {
+		if(req_period>=50) {
+			req_period = 0;
+			if(node_num==7) {
+				if(req_num==0) {
+					TxHeader.StdId = 0x400 | 0x3F;
+					TxHeader.ExtId = 0;
+					TxHeader.RTR = CAN_RTR_DATA;
+					TxHeader.IDE = CAN_ID_STD;
+					TxHeader.DLC = 3;
+					TxHeader.TransmitGlobalTime = DISABLE;
+					TxData[0] = 0x1F;
+					TxData[1] = 0x00;
+					TxData[2] = 0x0b;
+					HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
+					req_num = 1;
+				}else if(req_num==1) {
+					TxHeader.StdId = 0x400 | 0x3F;
+					TxHeader.ExtId = 0;
+					TxHeader.RTR = CAN_RTR_DATA;
+					TxHeader.IDE = CAN_ID_STD;
+					TxHeader.DLC = 4;
+					TxHeader.TransmitGlobalTime = DISABLE;
+					TxData[0] = 0x1F;
+					TxData[1] = 0x03;
+					TxData[2] = 0x8F;
+					TxData[3] = 0x13;
+					HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
+					node_num=0;
+					req_num = 0;
+					start_flag = 0;	// завершение цикла
+				}else {
+					node_num = 0;
+					req_num = 0;
+					start_flag = 0;	// завершение цикла
+				}
+			}else {
+				switch(conf[4+node_num]) {
+				case '0':	// нет узла
+					req_num = 0;
+					while(node_num<7) { // пропуск пустых узлов
+						node_num++;
+						if(node_num<7 && conf[4+node_num!='0']) break;
+					}
+					break;
+				case '1':	// PC21-1
+					if(req_num==0) {	// digital inp
+						TxHeader.StdId = 0x06 | (node_num<<3);
+						TxHeader.ExtId = 0;
+						TxHeader.RTR = CAN_RTR_DATA;
+						TxHeader.IDE = CAN_ID_STD;
+						TxHeader.DLC = 5;
+						TxHeader.TransmitGlobalTime = DISABLE;
+						TxData[0] = 0x0A;
+						TxData[1] = 0x01;
+						TxData[2] = 0xFF;
+						TxData[3] = 0x3F;
+						TxData[4] = 0x01;
+						HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
+						req_num = 1;
+					}else if(req_num==1) {	// digital out
+						TxHeader.StdId = 0x06 | (node_num<<3);
+						TxHeader.ExtId = 0;
+						TxHeader.RTR = CAN_RTR_DATA;
+						TxHeader.IDE = CAN_ID_STD;
+						TxHeader.DLC = 5;
+						TxHeader.TransmitGlobalTime = DISABLE;
+						TxData[0] = 0x0A;
+						TxData[1] = 0x01;
+						TxData[2] = 0xFF;
+						TxData[3] = 0x3F;
+						TxData[4] = 0x03;
+						HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
+						req_num = 2;
+					}else if(req_num==2) {	// analogue inp
+						TxHeader.StdId = 0x06 | (node_num<<3);
+						TxHeader.ExtId = 0;
+						TxHeader.RTR = CAN_RTR_DATA;
+						TxHeader.IDE = CAN_ID_STD;
+						TxHeader.DLC = 5;
+						TxHeader.TransmitGlobalTime = DISABLE;
+						TxData[0] = 0x0A;
+						TxData[1] = 0x01;
+						TxData[2] = 0xFF;
+						TxData[3] = 0x3F;
+						TxData[4] = 0x00;
+						HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
+						req_num = 0;
+						node_num++;
+					}else {
+						req_num = 0;
+						node_num++;
+					}
+					break;
+				case '2':	// PC21-CD
+					if(req_num==0) {
+						TxHeader.StdId = 0x06 | (node_num<<3);
+						TxHeader.ExtId = 0;
+						TxHeader.RTR = CAN_RTR_DATA;
+						TxHeader.IDE = CAN_ID_STD;
+						TxHeader.DLC = 5;
+						TxHeader.TransmitGlobalTime = DISABLE;
+						TxData[0] = 0x0A;
+						TxData[1] = 0x01;
+						TxData[2] = 0xFF;
+						TxData[3] = 0x00;
+						TxData[4] = 0x02;
+						HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
+						req_num = 0;
+						node_num++;
+					}else {
+						req_num = 0;
+						node_num++;
+					}
+					break;
+				case '3':	// PC21-MC
+					if(req_num==0) {	// digital inp
+						TxHeader.StdId = 0x06 | (node_num<<3);
+						TxHeader.ExtId = 0;
+						TxHeader.RTR = CAN_RTR_DATA;
+						TxHeader.IDE = CAN_ID_STD;
+						TxHeader.DLC = 5;
+						TxHeader.TransmitGlobalTime = DISABLE;
+						TxData[0] = 0x0A;
+						TxData[1] = 0x01;
+						TxData[2] = 0xFF;
+						TxData[3] = 0x3F;
+						TxData[4] = 0x01;
+						HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
+						req_num = 1;
+					}else if(req_num==1) {	// digital out
+						TxHeader.StdId = 0x06 | (node_num<<3);
+						TxHeader.ExtId = 0;
+						TxHeader.RTR = CAN_RTR_DATA;
+						TxHeader.IDE = CAN_ID_STD;
+						TxHeader.DLC = 5;
+						TxHeader.TransmitGlobalTime = DISABLE;
+						TxData[0] = 0x0A;
+						TxData[1] = 0x01;
+						TxData[2] = 0xFF;
+						TxData[3] = 0x3F;
+						TxData[4] = 0x03;
+						HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
+						req_num = 2;
+					}else if(req_num==2) {	// analogue inp
+						TxHeader.StdId = 0x06 | (node_num<<3);
+						TxHeader.ExtId = 0;
+						TxHeader.RTR = CAN_RTR_DATA;
+						TxHeader.IDE = CAN_ID_STD;
+						TxHeader.DLC = 5;
+						TxHeader.TransmitGlobalTime = DISABLE;
+						TxData[0] = 0x0A;
+						TxData[1] = 0x01;
+						TxData[2] = 0xFF;
+						TxData[3] = 0x3F;
+						TxData[4] = 0x00;
+						HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
+						req_num = 0;
+						node_num++;
+					}else {
+						req_num = 0;
+						node_num++;
+					}
+					break;
+				default:
+					node_num++;
+				}
+				if(node_num==7) req_num=0;
+			}
+		}else req_period++;
+	}
 }
 
 void canViewerTask(void const * argument) {
