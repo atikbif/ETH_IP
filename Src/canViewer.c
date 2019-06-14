@@ -68,7 +68,7 @@ static void initCANViewerFilter() {
 
 static void info_net_work(uint16_t *tmr) {
 	(*tmr)++;
-	if((*tmr)==VIEW_TIME) {
+	if((*tmr)==VIEW_TIME) {	// TELEMETRY ERRORS
 		TxHeader.StdId = 0x400 | 0x3F;
 		TxHeader.ExtId = 0;
 		TxHeader.RTR = CAN_RTR_DATA;
@@ -82,7 +82,7 @@ static void info_net_work(uint16_t *tmr) {
 		else if(eth_ip_state==0x02) TxData[1] = 0x01;
 		else TxData[2] = 0x02;
 		HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
-	}else if((*tmr)==VIEW_TIME+50) {
+	}else if((*tmr)==VIEW_TIME+50) {	// COMMUNICATION STATUS
 		TxHeader.StdId = 0x400 | 0x3F;
 		TxHeader.ExtId = 0;
 		TxHeader.RTR = CAN_RTR_DATA;
