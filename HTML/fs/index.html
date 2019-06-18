@@ -109,8 +109,19 @@ button:active:after {
 	  function onload(){
 		xhr = new(XMLHttpRequest);
 		read_data();
-		//setTimeout(function(){ read_data();},1000);
+		setInterval(function(){ read_can();},1000);
 		
+	  }
+	  function read_can(){
+	    var rxhr;
+		rxhr = new(XMLHttpRequest);
+		rxhr.open("GET", "can.html?r=" + Math.random(), true); 
+		rxhr.responseType = "text";
+		rxhr.onload = function (oEvent) {
+		
+			document.getElementById('can_data').innerHTML = rxhr.response;
+		}
+		rxhr.send(null);
 	  }
 	  function read_data(){
 	    var rxhr;
@@ -333,7 +344,7 @@ button:active:after {
 <div class="toasts" style="position: fixed; top: 15px; right: 15px; width: 250px;"></div>   
 
 <h1 style="text-align: center;">НАСТРОЙКА PC21-FE</h1>
-<p id="debug"></p>
+
 <p style="text-align: center;">
 Версия:<b id="version_high"></b>.<b id="version_low"></b>
 <br><br>
@@ -399,8 +410,13 @@ IP шлюз:
 <input type="text" maxlength="3" class="onlythree" id="gate3"/>.    
 <input type="text" maxlength="3" class="onlythree" id="gate4"/>    
 <br><br>
+
+<p style="text-align: center;">
 <button class = "button" type="button" onclick="read_data()">Прочитать</button>
 <button class = "button" type="button" onclick="write_data()">Записать</button>
 <button class = "button" type="button" onclick="reset_device()">Перезапуск</button>
+</p>
+
+<pre id="can_data" style="text-align: center; color: #1010ff;"></pre>
 </p>
 </body>

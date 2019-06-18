@@ -10,10 +10,13 @@
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
 
+#include "main.h"
+
 #define VIEW_TIME	3000
 #define UPD_TIME	10000
 
 extern CAN_HandleTypeDef hcan1;
+extern RNG_HandleTypeDef hrng;
 static CAN_RxHeaderTypeDef   RxHeader;
 static uint8_t               RxData[8];
 static CAN_TxHeaderTypeDef   TxHeader;
@@ -50,6 +53,124 @@ static uint16_t node_tmr[7] = {0,0,0,0,0,0,0};
 static uint16_t clusters_tmr = 0;
 static uint8_t clusters_update = 0;
 static uint8_t clusters_state = 0;
+
+uint32_t debug_time = 1;
+uint16_t debug_cnt = 0;
+
+typedef struct{
+	uint8_t addr;
+	uint8_t service;
+	uint8_t ss;
+	uint8_t eoid;
+	uint8_t intern_addr;
+	uint8_t data[8];
+	uint8_t data_length;
+	uint8_t sec;
+	uint8_t min;
+	uint8_t houre;
+	uint8_t active;
+}can_req;
+can_req can_reqs[CAN_REQ_CNT];
+
+uint8_t can_req_msg[CAN_REQ_CNT][100];
+
+extern RTC_HandleTypeDef hrtc;
+
+RTC_TimeTypeDef time;
+RTC_DateTypeDef date;
+
+
+uint8_t can_pos = 0;
+
+static void add_can_request(can_req *req) {
+	can_reqs[can_pos] = *req;
+	can_reqs[can_pos].active = 1;
+	can_pos++;if(can_pos>=CAN_REQ_CNT) can_pos = 0;
+}
+
+static uint8_t hex_table[]={'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+
+static void print_hex(uint8_t *buf, uint8_t value) {
+	buf[0] = '0';
+	buf[1] = 'x';
+	buf[2] = hex_table[value/16];
+	buf[3] = hex_table[value%16];
+	buf[4] = ' ';
+}
+
+static void print_dec(uint8_t *buf, uint8_t value) {
+	if(value>99) value = 99;
+	buf[0] = value/10 + '0';
+	buf[1] = value%10 + '0';
+}
+
+static void print_time(uint8_t *buf, can_req *req) {
+	print_dec(&buf[0],req->houre);
+	buf[2]=':';
+	print_dec(&buf[3],req->min);
+	buf[5]=':';
+	print_dec(&buf[6],req->sec);
+	buf[8]=' ';
+}
+
+static void print_message(uint8_t *buf, can_req *req) {
+	uint8_t i = 0, j = 0;
+	print_time(&buf[0],req);
+	buf[9] = 'N';buf[10]='O';buf[11]='D';buf[12]='E';buf[13]=':';
+	print_hex(&buf[14],req->addr);
+	buf[19] = 'S';
+	buf[20] = 'R';
+	buf[21] = 'V';
+	buf[22] = ':';
+	print_hex(&buf[23],req->service);
+	buf[28] = 'S';
+	buf[29] = 'S';
+	buf[30] = ':';
+	print_hex(&buf[31],req->ss);
+	buf[36] = 'I';
+	buf[37] = 'D';
+	buf[38] = ':';
+	print_hex(&buf[39],req->eoid);
+	buf[44]='A';buf[45]='D';buf[46]='D';buf[47]='R';buf[48]=':';
+	print_hex(&buf[49],req->intern_addr);
+	buf[54] = 'D';
+	buf[55] = 'A';
+	buf[56] = 'T';
+	buf[57] = 'A';
+	buf[58] = ':';
+	buf[99] = 0x0D;
+	j = req->data_length;
+	if(j>8) j = 8;
+	for(i=0;i<j;i++) {
+		print_hex(&buf[59+5*i],req->data[i]);
+	}
+	//buf[53+5*i] = 0x0d;
+}
+
+static void clear_can_msg(void) {
+	uint8_t i,j;
+	for(i=0;i<CAN_REQ_CNT;i++) {
+		for(j=0;j<99;j++) can_req_msg[i][j] = ' ';
+		can_req_msg[i][99] = 0x0d;
+	}
+}
+
+static void update_can_msg() {
+	uint8_t i,j;
+	uint8_t pos = 0;
+	if(can_pos) pos = can_pos-1;else pos = CAN_REQ_CNT - 1;
+	for(i=0;i<CAN_REQ_CNT;i++) {
+		if(can_reqs[pos].active) {
+			print_message(can_req_msg[CAN_REQ_CNT-1-i],&can_reqs[pos]);
+
+		}else {
+			for(j=0;j<99;j++) can_req_msg[CAN_REQ_CNT-1-i][j]=' ';
+			can_req_msg[i][99] = 0x0d;
+		}
+		if(pos) pos--;else pos = CAN_REQ_CNT - 1;
+	}
+}
+
 
 static void initCANViewerFilter() {
 	CAN_FilterTypeDef  sFilterConfig;
@@ -292,6 +413,7 @@ static void telemetry_work(uint16_t *tmr) {
 }
 
 void canViewerTask(void const * argument) {
+	can_req cr;
 	uint8_t eoid = 0;
 	uint8_t node_addr = 0;
 	//uint8_t serv = 0;
@@ -338,6 +460,29 @@ void canViewerTask(void const * argument) {
 
 	for(;;)
 	{
+		debug_cnt++;
+		if(debug_cnt>=800){
+			HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
+			debug_cnt = 0;
+			cr.addr = 1;
+			HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+			HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+			cr.sec = time.Seconds;
+			cr.min = time.Minutes;
+			cr.houre = time.Hours;
+			cr.eoid = HAL_GetTick() & 0x1F;
+			cr.ss = 0x00;
+			uint32_t rv = HAL_RNG_GetRandomNumber(&hrng);
+			cr.data_length = ((rv & 0xFF) % 8) + 1;
+			for(i=0;i<cr.data_length;i++) {
+				rv = HAL_RNG_GetRandomNumber(&hrng);
+				cr.data[i] = rv & 0xFF;
+			}
+			add_can_request(&cr);
+
+			clear_can_msg();
+			update_can_msg();
+		}
 		if((answer_9b[0] & 0x7F)==0) {
 			answer_9b[1] = 0;
 			for(i=0;i<8;i++) {
@@ -432,6 +577,24 @@ void canViewerTask(void const * argument) {
 				node_addr = (RxHeader.StdId>>3) & 0x7F;
 				//serv = RxHeader.StdId & 0x07;
 				intern_addr = RxData[1];
+
+
+				cr.service = RxHeader.StdId & 0x07;
+				cr.addr = (RxHeader.StdId>>3) & 0x0F;
+				HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+				HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+				cr.sec = time.Seconds;
+				cr.min = time.Minutes;
+				cr.houre = time.Hours;
+				cr.ss = (RxData[0] >> 5) & 0x07;
+				cr.eoid = eoid;
+				cr.intern_addr = intern_addr;
+				cr.data_length = RxHeader.DLC - 2;
+				for(i=0;i<cr.data_length;i++) cr.data[i] = RxData[2+i];
+				add_can_request(&cr);
+				clear_can_msg();
+				update_can_msg();
+
 				//answer_91[0]++;
 				switch(eoid) {
 				case 0x01:	// packed physical digits

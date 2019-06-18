@@ -15,6 +15,7 @@
 #include "main.h"
 #include "lwip/apps/fs.h"
 #include <string.h>
+#include "canViewer.h"
 
 extern uint8_t conf[64];
 
@@ -31,7 +32,7 @@ static const unsigned char PAGE_HEADER_200_OK[] = {
   0x00
 };
 
-static char PAGE_BODY[512] ;
+static char PAGE_BODY[1512] ;
 uint16_t len = 0;
 
 static const unsigned char PAGE_HEADER_SERVER[] = {
@@ -54,12 +55,30 @@ static const unsigned char PAGE_HEADER_CONTENT_TEXT[] = {
   0x00
 };
 
+static const unsigned char PAGE_HEADER_CAN_CONTENT_TEXT[] = {
+  //"Content-length: 1000"
+  //"Content-type: text/html"
+  0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x4C,0x65,0x6E,0x67,0x74,0x68,0x3a,0x20,
+  0x31,0x30,0x30,0x30,0x0d,0x0a,
+  0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x74,0x79,0x70,0x65,0x3a,0x20,0x74,0x65,
+  0x78,0x74,0x2f,0x68,0x74,0x6d,0x6c,0x0d,0x0a,0x0d,0x0a,
+  //zero
+  0x00
+};
+
+extern uint8_t can_req_msg[CAN_REQ_CNT][100];
+
 #define HTTPSERVER_THREAD_PRIO  ( tskIDLE_PRIORITY + 3 )
 
 uint16_t add_conf_data(uint16_t offset) {
 	read_conf();
 	memcpy(&PAGE_BODY[offset],&conf[2], 9+12*3);
 	return offset+9+12*3;
+}
+
+uint16_t add_can_data(uint16_t offset) {
+	memcpy(&PAGE_BODY[offset],&can_req_msg[0][0], 1000);
+	return offset+1000;
 }
 
 static void http_server_serve(struct netconn *conn)
@@ -106,6 +125,11 @@ static void http_server_serve(struct netconn *conn)
 						sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_CONTENT_TEXT);
 						len = strlen(PAGE_BODY);
 						len = add_conf_data(len);
+						netconn_write(conn, PAGE_BODY, len, NETCONN_NOCOPY);
+					}else if(strncmp((char const *)buf,"GET /can.html",13)==0) {
+						sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_CAN_CONTENT_TEXT);
+						len = strlen(PAGE_BODY);
+						len = add_can_data(len);
 						netconn_write(conn, PAGE_BODY, len, NETCONN_NOCOPY);
 					}
 					else
