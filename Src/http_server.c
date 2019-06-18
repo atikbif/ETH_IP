@@ -21,9 +21,11 @@ extern uint8_t conf[64];
 extern void read_conf();
 extern void write_conf();
 
+//uint8_t reset_flag = 0;
+
 static const unsigned char PAGE_HEADER_200_OK[] = {
   //"HTTP/1.0 200 OK"
-  0x48,0x54,0x54,0x50,0x2f,0x31,0x2e,0x30,0x20,0x32,0x30,0x30,0x20,0x4f,0x4b,0x0d,
+  0x48,0x54,0x54,0x50,0x2f,0x31,0x2e,0x31,0x20,0x32,0x30,0x30,0x20,0x4f,0x4b,0x0d,
   0x0a,
   //zero
   0x00
@@ -87,18 +89,19 @@ static void http_server_serve(struct netconn *conn)
 					}
 					else if(strncmp((char const *)buf,"GET /write.html?node=",21)==0) {
 						sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_CONTENT_TEXT);
-						len = strlen(PAGE_BODY);
+						//len = strlen(PAGE_BODY);
 						memcpy(&conf[4], &((uint8_t*)buf)[21], 7+12*3);
 						write_conf();
-						len = add_conf_data(len);
-						netconn_write(conn, PAGE_BODY, len, NETCONN_NOCOPY);
+						//len = add_conf_data(len);
+						//netconn_write(conn, PAGE_BODY, len, NETCONN_NOCOPY);
 					}else if(strncmp((char const *)buf,"GET /reset.html",15)==0) {
 						sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_CONTENT_TEXT);
-						len = strlen(PAGE_BODY);
-						len = add_conf_data(len);
-						netconn_write(conn, PAGE_BODY, len, NETCONN_NOCOPY);
+						//len = strlen(PAGE_BODY);
+						//len = add_conf_data(len);
+						//netconn_write(conn, PAGE_BODY, len, NETCONN_NOCOPY);
 						HAL_Delay(100);
 						NVIC_SystemReset();
+						//reset_flag = 1;
 					}else if(strncmp((char const *)buf,"GET /read.html",14)==0) {
 						sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_CONTENT_TEXT);
 						len = strlen(PAGE_BODY);

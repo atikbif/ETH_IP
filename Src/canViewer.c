@@ -334,6 +334,8 @@ void canViewerTask(void const * argument) {
 	HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
 	while(HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) != 3) {osDelay(1);}*/
 
+	osDelay(1000);
+
 	for(;;)
 	{
 		if((answer_9b[0] & 0x7F)==0) {

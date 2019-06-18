@@ -40,7 +40,7 @@
 
 #include "ethip.h"
 
-#define TCPSERVER_THREAD_PRIO  ( tskIDLE_PRIORITY + 4 )
+#define TCPSERVER_THREAD_PRIO  ( tskIDLE_PRIORITY + 3 )
 
 
 

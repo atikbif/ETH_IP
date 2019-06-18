@@ -58,40 +58,96 @@ button:active:after {
     transition: 0s
 }
 
+.toast {
+  overflow: hidden;
+  font-size: 0.875rem;
+  background-color: rgba(255, 255, 255, 0.5);
+  background-clip: padding-box;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0.25rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  display: none;
+  position: relative;
+  padding: 0.75rem 2rem 0.75rem 0.75rem;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.toast__close {
+  position: absolute;
+  top: 0;
+  right: 10px;
+  padding: 0;
+  background-color: transparent;
+  border: 0;
+  cursor: pointer;
+  float: right;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  text-shadow: 0 1px 0 #fff;
+  opacity: 0.6;
+  appearance: button;
+  margin: 0;
+  font-family: inherit;
+  border-radius: 0;
+}
+
+.toast_show {
+  display: block;
+}  
+
+.toast:not(:last-child) {
+  margin-bottom: 0.75rem;
+}
+
   </style>
   <script>
 	  var xhr;
 	  function onload(){
 		xhr = new(XMLHttpRequest);
 		read_data();
+		//setTimeout(function(){ read_data();},1000);
+		
 	  }
 	  function read_data(){
-		xhr.open("GET", "read.html?r=" + Math.random(), true); 
-		xhr.responseType = "text";
-		xhr.onload = function (oEvent) {
-			document.getElementById('version_high').innerHTML = xhr.response[0];
-			document.getElementById('version_low').innerHTML = xhr.response[1];
-			document.getElementById('node0').value = xhr.response[2];
-			document.getElementById('node1').value = xhr.response[3];
-			document.getElementById('node2').value = xhr.response[4];
-			document.getElementById('node3').value = xhr.response[5];
-			document.getElementById('node4').value = xhr.response[6];
-			document.getElementById('node5').value = xhr.response[7];
-			document.getElementById('node6').value = xhr.response[8];
-			var s = xhr.response[9]+xhr.response[10]+xhr.response[11];if(!isNaN(s)) document.getElementById('ip1').value = s;else document.getElementById('ip1').value = "000";
-			s = xhr.response[12]+xhr.response[13]+xhr.response[14];if(!isNaN(s)) document.getElementById('ip2').value = s;else document.getElementById('ip2').value = "000";
-			s = xhr.response[15]+xhr.response[16]+xhr.response[17];if(!isNaN(s)) document.getElementById('ip3').value = s;else document.getElementById('ip3').value = "000";
-			s = xhr.response[18]+xhr.response[19]+xhr.response[20];if(!isNaN(s)) document.getElementById('ip4').value = s;else document.getElementById('ip4').value = "000";
-			s = xhr.response[21]+xhr.response[22]+xhr.response[23];if(!isNaN(s)) document.getElementById('mask1').value = s;else document.getElementById('mask1').value = "000";
-			s = xhr.response[24]+xhr.response[25]+xhr.response[26];if(!isNaN(s)) document.getElementById('mask2').value = s;else document.getElementById('mask2').value = "000";
-			s = xhr.response[27]+xhr.response[28]+xhr.response[29];if(!isNaN(s)) document.getElementById('mask3').value = s;else document.getElementById('mask3').value = "000";
-			s = xhr.response[30]+xhr.response[31]+xhr.response[32];if(!isNaN(s)) document.getElementById('mask4').value = s;else document.getElementById('mask4').value = "000";
-			s = xhr.response[33]+xhr.response[34]+xhr.response[35];if(!isNaN(s)) document.getElementById('gate1').value = s;else document.getElementById('gate1').value = "000";
-			s = xhr.response[36]+xhr.response[37]+xhr.response[38];if(!isNaN(s)) document.getElementById('gate2').value = s;else document.getElementById('gate2').value = "000";
-			s = xhr.response[39]+xhr.response[40]+xhr.response[41];if(!isNaN(s)) document.getElementById('gate3').value = s;else document.getElementById('gate3').value = "000";
-			s = xhr.response[42]+xhr.response[43]+xhr.response[44];if(!isNaN(s)) document.getElementById('gate4').value = s;else document.getElementById('gate4').value = "000";
+	    var rxhr;
+		rxhr = new(XMLHttpRequest);
+		rxhr.open("GET", "read.html?r=" + Math.random(), true); 
+		rxhr.responseType = "text";
+		rxhr.onload = function (oEvent) {
+		
+			Toast.add({
+			  text: 'Настройки прочитаны',
+			  color: '#9fff9f',
+			  autohide: true
+			});
+		
+			document.getElementById('version_high').innerHTML = rxhr.response[0];
+			document.getElementById('version_low').innerHTML = rxhr.response[1];
+			document.getElementById('node0').value = rxhr.response[2];
+			document.getElementById('node1').value = rxhr.response[3];
+			document.getElementById('node2').value = rxhr.response[4];
+			document.getElementById('node3').value = rxhr.response[5];
+			document.getElementById('node4').value = rxhr.response[6];
+			document.getElementById('node5').value = rxhr.response[7];
+			document.getElementById('node6').value = rxhr.response[8];
+			var s = rxhr.response[9]+rxhr.response[10]+rxhr.response[11];if(!isNaN(s)) document.getElementById('ip1').value = s;else document.getElementById('ip1').value = "000";
+			s = rxhr.response[12]+rxhr.response[13]+rxhr.response[14];if(!isNaN(s)) document.getElementById('ip2').value = s;else document.getElementById('ip2').value = "000";
+			s = rxhr.response[15]+rxhr.response[16]+rxhr.response[17];if(!isNaN(s)) document.getElementById('ip3').value = s;else document.getElementById('ip3').value = "000";
+			s = rxhr.response[18]+rxhr.response[19]+rxhr.response[20];if(!isNaN(s)) document.getElementById('ip4').value = s;else document.getElementById('ip4').value = "000";
+			s = rxhr.response[21]+rxhr.response[22]+rxhr.response[23];if(!isNaN(s)) document.getElementById('mask1').value = s;else document.getElementById('mask1').value = "000";
+			s = rxhr.response[24]+rxhr.response[25]+rxhr.response[26];if(!isNaN(s)) document.getElementById('mask2').value = s;else document.getElementById('mask2').value = "000";
+			s = rxhr.response[27]+rxhr.response[28]+xhr.response[29];if(!isNaN(s)) document.getElementById('mask3').value = s;else document.getElementById('mask3').value = "000";
+			s = rxhr.response[30]+rxhr.response[31]+rxhr.response[32];if(!isNaN(s)) document.getElementById('mask4').value = s;else document.getElementById('mask4').value = "000";
+			s = rxhr.response[33]+rxhr.response[34]+rxhr.response[35];if(!isNaN(s)) document.getElementById('gate1').value = s;else document.getElementById('gate1').value = "000";
+			s = rxhr.response[36]+rxhr.response[37]+rxhr.response[38];if(!isNaN(s)) document.getElementById('gate2').value = s;else document.getElementById('gate2').value = "000";
+			s = rxhr.response[39]+rxhr.response[40]+rxhr.response[41];if(!isNaN(s)) document.getElementById('gate3').value = s;else document.getElementById('gate3').value = "000";
+			s = rxhr.response[42]+rxhr.response[43]+rxhr.response[44];if(!isNaN(s)) document.getElementById('gate4').value = s;else document.getElementById('gate4').value = "000";
 		}
-		xhr.send(null);
+		rxhr.send(null);
 	  }
 	  function write_data(){
 		var count = 0;
@@ -103,35 +159,179 @@ button:active:after {
 			res+=value;
 			count++;
 		}
-		var ip1=document.getElementById('ip1').value; while(ip1.length<3) ip1='0'+ip1;if(isNaN(ip1)) res+="000";else res+=ip1;
-		var ip2=document.getElementById('ip2').value; while(ip2.length<3) ip2='0'+ip2;if(isNaN(ip2)) res+="000";else res+=ip2;
-		var ip3=document.getElementById('ip3').value; while(ip3.length<3) ip3='0'+ip3;if(isNaN(ip3)) res+="000";else res+=ip3;
-		var ip4=document.getElementById('ip4').value; while(ip4.length<3) ip4='0'+ip4;if(isNaN(ip4)) res+="000";else res+=ip4;
 		
-		var mask1=document.getElementById('mask1').value; while(mask1.length<3) mask1='0'+mask1;if(isNaN(mask1)) res+="000";else res+=mask1;
-		var mask2=document.getElementById('mask2').value; while(mask2.length<3) mask2='0'+mask2;if(isNaN(mask2)) res+="000";else res+=mask2;
-		var mask3=document.getElementById('mask3').value; while(mask3.length<3) mask3='0'+mask3;if(isNaN(mask3)) res+="000";else res+=mask3;
-		var mask4=document.getElementById('mask4').value; while(mask4.length<3) mask4='0'+mask4;if(isNaN(mask4)) res+="000";else res+=mask4;
+		var ip_check = true;
+		var mask_check = true;
+		var gate_check = true;
 		
-		var gate1=document.getElementById('gate1').value; while(gate1.length<3) gate1='0'+gate1;if(isNaN(gate1)) res+="000";else res+=gate1;
-		var gate2=document.getElementById('gate2').value; while(gate2.length<3) gate2='0'+gate2;if(isNaN(gate2)) res+="000";else res+=gate2;
-		var gate3=document.getElementById('gate3').value; while(gate3.length<3) gate3='0'+gate3;if(isNaN(gate3)) res+="000";else res+=gate3;
-		var gate4=document.getElementById('gate4').value; while(gate4.length<3) gate4='0'+gate4;if(isNaN(gate4)) res+="000";else res+=gate4;
+		var ip1=document.getElementById('ip1').value; while(ip1.length<3) ip1='0'+ip1;if(isNaN(ip1)) ip_check = false;else res+=ip1;
+		var ip2=document.getElementById('ip2').value; while(ip2.length<3) ip2='0'+ip2;if(isNaN(ip2)) ip_check = false;else res+=ip2;
+		var ip3=document.getElementById('ip3').value; while(ip3.length<3) ip3='0'+ip3;if(isNaN(ip3)) ip_check = false;else res+=ip3;
+		var ip4=document.getElementById('ip4').value; while(ip4.length<3) ip4='0'+ip4;if(isNaN(ip4)) ip_check = false;else res+=ip4;
 		
-		xhr.open("GET", "write.html?node="+res, true);
-		xhr.responseType = "text";
-		xhr.send(null);
+		var mask1=document.getElementById('mask1').value; while(mask1.length<3) mask1='0'+mask1;if(isNaN(mask1)) mask_check = false;else res+=mask1;
+		var mask2=document.getElementById('mask2').value; while(mask2.length<3) mask2='0'+mask2;if(isNaN(mask2)) mask_check = false;else res+=mask2;
+		var mask3=document.getElementById('mask3').value; while(mask3.length<3) mask3='0'+mask3;if(isNaN(mask3)) mask_check = false;else res+=mask3;
+		var mask4=document.getElementById('mask4').value; while(mask4.length<3) mask4='0'+mask4;if(isNaN(mask4)) mask_check = false;else res+=mask4;
+		
+		var gate1=document.getElementById('gate1').value; while(gate1.length<3) gate1='0'+gate1;if(isNaN(gate1)) gate_check = false;else res+=gate1;
+		var gate2=document.getElementById('gate2').value; while(gate2.length<3) gate2='0'+gate2;if(isNaN(gate2)) gate_check = false;else res+=gate2;
+		var gate3=document.getElementById('gate3').value; while(gate3.length<3) gate3='0'+gate3;if(isNaN(gate3)) gate_check = false;else res+=gate3;
+		var gate4=document.getElementById('gate4').value; while(gate4.length<3) gate4='0'+gate4;if(isNaN(gate4)) gate_check = false;else res+=gate4;
+		
+		if(ip_check && mask_check && gate_check) {
+			xhr.open("GET", "write.html?node="+res, true);
+			xhr.responseType = "text";
+			xhr.send(null);
+			Toast.add({
+			  text: 'Запись настроек',
+			  color: '#9fff9f',
+			  autohide: true
+			});
+		}else {
+			if(ip_check==false) {
+				Toast.add({
+				  text: 'Некорректный IP адрес',
+				  color: '#ff9f9f',
+				  autohide: false
+				});
+			}
+			if(mask_check==false) {
+				Toast.add({
+				  text: 'Некорректная IP маска',
+				  color: '#ff9f9f',
+				  autohide: false
+				});
+			}
+			if(gate_check==false) {
+				Toast.add({
+				  text: 'Некорректный IP шлюз',
+				  color: '#ff9f9f',
+				  autohide: false
+				});
+			}
+		}
 	  }
 	  function reset_device(){
 		xhr.open("GET", "reset.html", true);
 		xhr.responseType = "text";
 		xhr.send(null);
+		
+		var ip1=document.getElementById('ip1').value; 
+		var ip2=document.getElementById('ip2').value; 
+		var ip3=document.getElementById('ip3').value; 
+		var ip4=document.getElementById('ip4').value; 
+		if((!isNaN(ip1)) && (!isNaN(ip2)) && (!isNaN(ip3)) && (!isNaN(ip4))) {
+			Toast.add({
+			  text: 'Обновление страницы',
+			  color: '#9fff9f',
+			  autohide: true
+			});
+			setTimeout(function(){ var page_addr = "http://" + ip1 + "." + ip2 + "." + ip3 + "." + ip4;	location.replace(page_addr);},2000);
+		}
 	  }  
+	  
+	  var Toast = function (element, config) {
+	  // приватные переменные класса Toast
+	  var
+		_this = this,
+		_element = element,
+		_config = {
+		  autohide: true,
+		  delay: 5000
+		};
+	  // установление _config
+	  for (var prop in config) {
+		_config[prop] = config[prop];
+	  }
+	  // get-свойство element
+	  Object.defineProperty(this, 'element', {
+		get: function () {
+		  return _element;
+		}
+	  });
+	  // get-свойство config
+	  Object.defineProperty(this, 'config', {
+		get: function () {
+		  return _config;
+		}
+	  });
+	  // обработки события click (скрытие сообщения при нажатии на кнопку "Закрыть")
+	  _element.addEventListener('click', function (e) {
+		if (e.target.classList.contains('toast__close')) {
+		  _this.hide();
+		}
+	  });
+	}
+	// методы show и hide, описанные в прототипе объекта Toast
+	Toast.prototype = {
+	  show: function () {
+		var _this = this;
+		this.element.classList.add('toast_show');
+		if (this.config.autohide) {
+		  setTimeout(function () {
+			_this.hide();
+		  }, this.config.delay)
+		}
+	  },
+	  hide: function () {
+		this.element.classList.remove('toast_show');
+	  }
+	};
+	// статическая функция для Toast (используется для создания сообщения)
+	Toast.create = function (text, color) {
+	  var
+		fragment = document.createDocumentFragment(),
+		toast = document.createElement('div'),
+		toastClose = document.createElement('button');
+	  toast.classList.add('toast');
+	  toast.style.backgroundColor = 'rgba(' + parseInt(color.substr(1, 2), 16) + ',' + parseInt(color.substr(3, 2), 16) + ',' + parseInt(color.substr(5, 2), 16) + ',0.5)';
+	  toast.textContent = text;
+	  toastClose.classList.add('toast__close');
+	  toastClose.setAttribute('type', 'button');
+	  toastClose.textContent = '×';
+	  toast.appendChild(toastClose);
+	  fragment.appendChild(toast);
+	  return fragment;
+	};
+	// статическая функция для Toast (используется для добавления сообщения на страницу)
+	Toast.add = function (params) {
+	  var config = {
+		header: 'Название заголовка',
+		text: 'Текст сообщения...',
+		color: '#ffffff',
+		autohide: true,
+		delay: 5000
+	  };
+	  if (params !== undefined) {
+		for (var item in params) {
+		  config[item] = params[item];
+		}
+	  }
+	  if (!document.querySelector('.toasts')) {
+		var container = document.createElement('div');
+		container.classList.add('toasts');
+		container.style.cssText = 'position: fixed; top: 15px; right: 15px; width: 250px;';
+		document.body.appendChild(container);
+	  }
+	  document.querySelector('.toasts').appendChild(Toast.create(config.text, config.color));
+	  var toasts = document.querySelectorAll('.toast');
+	  var toast = new Toast(toasts[toasts.length - 1], { autohide: config.autohide, delay: config.delay });
+	  toast.show();
+	  return toast;
+	}
   </script>
   
   <title>НАСТРОЙКА PC21-FE</title>
 </head>
 <body onload="onload()">
+
+<div class="toast" style="background-color: rgba(255, 255, 255, 0.5);">
+  <button class="toast__close" type="button">&times;</button>
+</div>
+
+<div class="toasts" style="position: fixed; top: 15px; right: 15px; width: 250px;"></div>   
+
 <h1 style="text-align: center;">НАСТРОЙКА PC21-FE</h1>
 <p id="debug"></p>
 <p style="text-align: center;">
@@ -149,18 +349,20 @@ Node 1:
   <option value="2">PC21-CD</option>
   <option value="1">PC21-1</option>
 </select>
+&nbsp;&nbsp;
 Node 2:
 <select id="node2">
   <option value="0">нет</option>
   <option value="1">PC21-1</option>
 </select>
-&nbsp;&nbsp;
+<br><br> 
 Node 3:
 <select id="node3">
   <option value="0">нет</option>
   <option value="3">PC21-MC</option>
   <option value="1">PC21-1</option>
 </select>
+&nbsp;&nbsp;
 Node 4:
 <select id="node4">
   <option value="0">нет</option>
@@ -172,6 +374,7 @@ Node 5:
   <option value="0">нет</option>
   <option value="1">PC21-1</option>
 </select>
+<br><br> 
 Node 6:
 <select id="node6">
   <option value="0">нет</option>
@@ -200,4 +403,4 @@ IP шлюз:
 <button class = "button" type="button" onclick="write_data()">Записать</button>
 <button class = "button" type="button" onclick="reset_device()">Перезапуск</button>
 </p>
-
+</body>

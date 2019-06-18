@@ -81,6 +81,8 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 
+//extern uint8_t reset_flag;
+
 uint16_t key_tmr = 0;
 extern uint16_t can_tmr;
 extern IWDG_HandleTypeDef hiwdg;
@@ -201,7 +203,8 @@ void StartDefaultTask(void const * argument)
 	  if(led2_cnt==0) HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin,GPIO_PIN_SET);else HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin,GPIO_PIN_RESET);
 	  led2_cnt++;if(led2_cnt>=led2_period) led2_cnt=0;
 	  can_tmr++;
-	  HAL_IWDG_Refresh(&hiwdg);
+	  //if(reset_flag==0)
+		  HAL_IWDG_Refresh(&hiwdg);
   }
   /* USER CODE END StartDefaultTask */
 }
