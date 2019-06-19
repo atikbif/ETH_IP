@@ -118,36 +118,51 @@ static void print_message(uint8_t *buf, can_req *req) {
 	print_time(&buf[0],req);
 	buf[9] = 'N';buf[10]='O';buf[11]='D';buf[12]='E';buf[13]=':';
 	print_hex(&buf[14],req->addr);
-	buf[19] = 'S';
-	buf[20] = 'R';
-	buf[21] = 'V';
-	buf[22] = ':';
-	print_hex(&buf[23],req->service);
-	buf[28] = 'S';
-	buf[29] = 'S';
-	buf[30] = ':';
-	print_hex(&buf[31],req->ss);
-	buf[36] = 'I';
-	buf[37] = 'D';
-	buf[38] = ':';
-	print_hex(&buf[39],req->eoid);
-	buf[44]='A';buf[45]='D';buf[46]='D';buf[47]='R';buf[48]=':';
-	print_hex(&buf[49],req->intern_addr);
-	buf[54] = 'D';
-	buf[55] = 'A';
-	buf[56] = 'T';
-	buf[57] = 'A';
-	buf[58] = ':';
-	buf[99] = 0x0D;
-	j = req->data_length;
-	if(j>8) j = 8;
-	for(i=0;i<j;i++) {
-		print_hex(&buf[59+5*i],req->data[i]);
+	if(req->service==0x01) {
+		buf[19] = 'H';
+		buf[20] = 'E';
+		buf[21] = 'A';
+		buf[22] = 'R';
+		buf[23] = 'T';
+		buf[24] = 'B';
+		buf[25] = 'E';
+		buf[26] = 'A';
+		buf[27] = 'T';
+		buf[28] = ':';
+		print_hex(&buf[29],req->intern_addr);
+	}else {
+		buf[19] = 'S';
+		buf[20] = 'R';
+		buf[21] = 'V';
+		buf[22] = ':';
+		print_hex(&buf[23],req->service);
+		buf[28] = 'S';
+		buf[29] = 'S';
+		buf[30] = ':';
+		print_hex(&buf[31],req->ss);
+		buf[36] = 'I';
+		buf[37] = 'D';
+		buf[38] = ':';
+		print_hex(&buf[39],req->eoid);
+		buf[44]='A';buf[45]='D';buf[46]='D';buf[47]='R';buf[48]=':';
+		print_hex(&buf[49],req->intern_addr);
+		buf[54] = 'D';
+		buf[55] = 'A';
+		buf[56] = 'T';
+		buf[57] = 'A';
+		buf[58] = ':';
+		buf[99] = 0x0D;
+		j = req->data_length;
+		if(j>8) j = 8;
+		for(i=0;i<j;i++) {
+			print_hex(&buf[59+5*i],req->data[i]);
+		}
 	}
+
 	//buf[53+5*i] = 0x0d;
 }
 
-static void clear_can_msg(void) {
+void clear_can_msg(void) {
 	uint8_t i,j;
 	for(i=0;i<CAN_REQ_CNT;i++) {
 		for(j=0;j<99;j++) can_req_msg[i][j] = ' ';
@@ -155,7 +170,7 @@ static void clear_can_msg(void) {
 	}
 }
 
-static void update_can_msg() {
+void update_can_msg() {
 	uint8_t i,j;
 	uint8_t pos = 0;
 	if(can_pos) pos = can_pos-1;else pos = CAN_REQ_CNT - 1;
@@ -592,8 +607,8 @@ void canViewerTask(void const * argument) {
 				cr.data_length = RxHeader.DLC - 2;
 				for(i=0;i<cr.data_length;i++) cr.data[i] = RxData[2+i];
 				add_can_request(&cr);
-				clear_can_msg();
-				update_can_msg();
+				//clear_can_msg();
+				//update_can_msg();
 
 				//answer_91[0]++;
 				switch(eoid) {

@@ -32,7 +32,7 @@ static const unsigned char PAGE_HEADER_200_OK[] = {
   0x00
 };
 
-static char PAGE_BODY[1512] ;
+static char PAGE_BODY[3512] ;
 uint16_t len = 0;
 
 static const unsigned char PAGE_HEADER_SERVER[] = {
@@ -55,11 +55,22 @@ static const unsigned char PAGE_HEADER_CONTENT_TEXT[] = {
   0x00
 };
 
-static const unsigned char PAGE_HEADER_CAN_CONTENT_TEXT[] = {
-  //"Content-length: 1000"
+static const unsigned char PAGE_HEADER_DYN_CONTENT_TEXT[] = {
+  //"Content-length: 8"
   //"Content-type: text/html"
   0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x4C,0x65,0x6E,0x67,0x74,0x68,0x3a,0x20,
-  0x31,0x30,0x30,0x30,0x0d,0x0a,
+  0x38,0x0d,0x0a,
+  0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x74,0x79,0x70,0x65,0x3a,0x20,0x74,0x65,
+  0x78,0x74,0x2f,0x68,0x74,0x6d,0x6c,0x0d,0x0a,0x0d,0x0a,
+  //zero
+  0x00
+};
+
+static const unsigned char PAGE_HEADER_CAN_CONTENT_TEXT[] = {
+  //"Content-length: 3000"
+  //"Content-type: text/html"
+  0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x4C,0x65,0x6E,0x67,0x74,0x68,0x3a,0x20,
+  0x33,0x30,0x30,0x30,0x0d,0x0a,
   0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x74,0x79,0x70,0x65,0x3a,0x20,0x74,0x65,
   0x78,0x74,0x2f,0x68,0x74,0x6d,0x6c,0x0d,0x0a,0x0d,0x0a,
   //zero
@@ -68,7 +79,12 @@ static const unsigned char PAGE_HEADER_CAN_CONTENT_TEXT[] = {
 
 extern uint8_t can_req_msg[CAN_REQ_CNT][100];
 
+uint8_t dynamic_page[8];
+
 #define HTTPSERVER_THREAD_PRIO  ( tskIDLE_PRIORITY + 3 )
+
+extern void clear_can_msg(void);
+extern void update_can_msg();
 
 uint16_t add_conf_data(uint16_t offset) {
 	read_conf();
@@ -77,8 +93,32 @@ uint16_t add_conf_data(uint16_t offset) {
 }
 
 uint16_t add_can_data(uint16_t offset) {
-	memcpy(&PAGE_BODY[offset],&can_req_msg[0][0], 1000);
-	return offset+1000;
+	clear_can_msg();
+	update_can_msg();
+	memcpy(&PAGE_BODY[offset],&can_req_msg[0][0], 3000);
+	return offset+3000;
+}
+
+uint16_t add_dyn_data(uint16_t offset) {
+	memcpy(&PAGE_BODY[offset],dynamic_page, 8);
+	return offset+8;
+}
+
+
+static uint8_t hex_table[]={'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+
+extern RNG_HandleTypeDef hrng;
+
+static void update_dynamic_page() {
+	uint32_t v = HAL_RNG_GetRandomNumber(&hrng);
+	dynamic_page[0] = hex_table[(v&0xFF)/16];
+	dynamic_page[1] = hex_table[(v&0xFF)%16];
+	dynamic_page[2] = hex_table[((v>>8)&0xFF)/16];
+	dynamic_page[3] = hex_table[((v>>8)&0xFF)%16];
+	dynamic_page[4] = hex_table[((v>>16)&0xFF)/16];
+	dynamic_page[5] = hex_table[((v>>16)&0xFF)%16];
+	dynamic_page[6] = hex_table[((v>>24)&0xFF)/16];
+	dynamic_page[7] = hex_table[((v>>24)&0xFF)%16];
 }
 
 static void http_server_serve(struct netconn *conn)
@@ -100,11 +140,25 @@ static void http_server_serve(struct netconn *conn)
 				netbuf_data(inbuf, (void**)&buf, &buflen);
 				if ((buflen >=5) && (strncmp(buf, "GET /", 5) == 0))
 				{
-					if ((strncmp((char const *)buf,"GET / ",6)==0)||(strncmp((char const *)buf,"GET /index.html",15)==0))
+					if (strncmp((char const *)buf,"GET / ",6)==0)
 					{
-						fs_open(&file, "/index.html");
+						update_dynamic_page();
+						fs_open(&file, "/user.html");
 						netconn_write(conn, file.data, file.len, NETCONN_NOCOPY);
 						fs_close(&file);
+					}else if(strncmp((char const *)buf,"GET /dynamic.html?login",11)==0) {
+						if((strncmp((char const *)&buf[18],"login=admin",11)==0) && (strncmp((char const *)&buf[30],"password=admin",14)==0))
+						{
+							update_dynamic_page();
+							sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_DYN_CONTENT_TEXT);
+							len = strlen(PAGE_BODY);
+							len = add_dyn_data(len);
+							netconn_write(conn, PAGE_BODY, len, NETCONN_NOCOPY);
+						}else {
+							fs_open(&file, "/404.html");
+							netconn_write(conn, file.data, file.len, NETCONN_NOCOPY);
+							fs_close(&file);
+						}
 					}
 					else if(strncmp((char const *)buf,"GET /write.html?node=",21)==0) {
 						sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_CONTENT_TEXT);
@@ -131,6 +185,10 @@ static void http_server_serve(struct netconn *conn)
 						len = strlen(PAGE_BODY);
 						len = add_can_data(len);
 						netconn_write(conn, PAGE_BODY, len, NETCONN_NOCOPY);
+					}else if(strncmp((char const *)&buf[9],(const char*)dynamic_page,8)==0) {
+						fs_open(&file, "/index.html");
+						netconn_write(conn, file.data, file.len, NETCONN_NOCOPY);
+						fs_close(&file);
 					}
 					else
 					{
@@ -151,6 +209,8 @@ static void http_server_thread(void *arg)
 {
 	struct netconn *conn, *newconn;
 	err_t err, accept_err;
+
+	update_dynamic_page();
 
 	/* Create a new TCP connection handle */
 	conn = netconn_new(NETCONN_TCP);
