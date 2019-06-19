@@ -84,7 +84,6 @@ void MX_LWIP_Init(void)
 	GATEWAY_ADDRESS[1] = read_gate_from_conf(2);
 	GATEWAY_ADDRESS[2] = read_gate_from_conf(3);
 	GATEWAY_ADDRESS[3] = read_gate_from_conf(4);
-  GATEWAY_ADDRESS[3] = 0;
   
   /* Initilialize the LwIP stack with RTOS */
   tcpip_init( NULL, NULL );

@@ -38,7 +38,7 @@ select {
 	border-radius: 10pt;
 }
 
-button:after {
+.button:after {
     content: "";
     background: #f1f1f1;
     display: block;
@@ -51,7 +51,44 @@ button:after {
     transition: all 0.8s
 }
 
-button:active:after {
+.button:active:after {
+    padding: 0;
+    margin: 0;
+    opacity: 1;
+    transition: 0s
+}
+
+.small_button {
+	position: relative;
+    background-color: #e5e5ff;
+    border: none;
+    font-size: 16pt;
+    color: black;
+    padding: 10pt;
+    width: 150pt;
+    text-align: center;
+    -webkit-transition-duration: 0.4s; /* Safari */
+    transition-duration: 0.4s;
+    text-decoration: none;
+    overflow: hidden;
+    cursor: pointer;
+	border-radius: 5pt;
+}
+
+.small_button:after {
+    content: "";
+    background: #f1f1f1;
+    display: block;
+    position: absolute;
+    padding-top: 300%;
+    padding-left: 350%;
+    margin-left: -20pt !important;
+    margin-top: -120%;
+    opacity: 0;
+    transition: all 0.8s
+}
+
+.small_button:active:after {
     padding: 0;
     margin: 0;
     opacity: 1;
@@ -106,6 +143,7 @@ button:active:after {
   </style>
   <script>
 	  var xhr;
+	  
 	  function onload(){
 		xhr = new(XMLHttpRequest);
 		read_data();
@@ -118,8 +156,9 @@ button:active:after {
 		rxhr.open("GET", "can.html?r=" + Math.random(), true); 
 		rxhr.responseType = "text";
 		rxhr.onload = function (oEvent) {
-		
-			document.getElementById('can_data').innerHTML = rxhr.response;
+			var full_answer = rxhr.response;
+			document.getElementById('cur_time').innerHTML = full_answer.substring(0,18);
+			document.getElementById('can_data').innerHTML = full_answer.substring(18);
 		}
 		rxhr.send(null);
 	  }
@@ -242,6 +281,43 @@ button:active:after {
 		}
 	  }  
 	  
+	  function synchro(){
+		var pageName = "synchro.html?date=";
+		var currentdate = new Date(); 
+		var date = currentdate.getDate();
+		if(date<10) pageName+="0"+date;else pageName+=date;
+		var month = currentdate.getMonth()+1;
+		if(month<10) pageName+="0"+month;else pageName+=month;
+		var year = currentdate.getFullYear()-2000;
+		if(year<10) pageName+="0"+year;else pageName+=year;
+		var hours = currentdate.getHours();
+		if(hours<10) pageName+="0"+hours;else pageName+=hours;
+		var min = currentdate.getMinutes();
+		if(min<10) pageName+="0"+min;else pageName+=min;
+		var sec = currentdate.getSeconds();
+		if(sec<10) pageName+="0"+sec;else pageName+=sec;;
+		xhr.open("GET", pageName, true);
+		xhr.responseType = "text";
+		xhr.onload = function (oEvent) {
+		
+			Toast.add({
+			  text: 'Время записано',
+			  color: '#9fff9f',
+			  autohide: true
+			});
+		}
+		xhr.send(null);
+	  }  
+	  
+	  function new_password(){
+			var pageName = "http://"+self.location.hostname + "/new_password.html";
+			location.replace(pageName);
+	  }
+	  function home_page(){
+		var pageName = "http://"+self.location.hostname;
+			location.replace(pageName);
+	  }
+	  
 	  var Toast = function (element, config) {
 	  // приватные переменные класса Toast
 	  var
@@ -333,7 +409,7 @@ button:active:after {
 	}
   </script>
   
-  <title>НАСТРОЙКА PC21-FE</title>
+  <title>НАСТРОЙКА ДДС-МТ</title>
 </head>
 <body onload="onload()">
 
@@ -343,11 +419,17 @@ button:active:after {
 
 <div class="toasts" style="position: fixed; top: 15px; right: 15px; width: 250px;"></div>   
 
-<h1 style="text-align: center;">НАСТРОЙКА PC21-FE</h1>
+<h1 style="text-align: center;">НАСТРОЙКА ДДС-МТ</h1>
 
 <p style="text-align: center;">
 Версия:<b id="version_high"></b>.<b id="version_low"></b>
-<br><br>
+<br>
+<p style="text-align: center;">
+&nbsp;&nbsp;Время:&nbsp;&nbsp;<span id="cur_time">01/01/00	00:00:00</span>
+&nbsp;&nbsp;&nbsp;&nbsp;
+<button class = "small_button" type="button" onclick="synchro()">Синхронизация</button>
+</p>
+<p style="text-align: center;">
 Node 0:
 <select id="node0">
   <option value="0">нет</option>
@@ -408,9 +490,9 @@ IP шлюз:
 <input type="text" maxlength="3" class="onlythree" id="gate1"/>.    
 <input type="text" maxlength="3" class="onlythree" id="gate2"/>.    
 <input type="text" maxlength="3" class="onlythree" id="gate3"/>.    
-<input type="text" maxlength="3" class="onlythree" id="gate4"/>    
+<input type="text" maxlength="3" class="onlythree" id="gate4"/>   
+</p> 
 <br><br>
-
 <p style="text-align: center;">
 <button class = "button" type="button" onclick="read_data()">Прочитать</button>
 <button class = "button" type="button" onclick="write_data()">Записать</button>
@@ -418,5 +500,10 @@ IP шлюз:
 </p>
 
 <pre id="can_data" style="text-align: center; color: #1010ff;"></pre>
+<p style="text-align: center;">
+<button class = "small_button" type="button" onclick="new_password()">Новый пароль</button>
+&nbsp;&nbsp;
+<button class = "small_button" type="button" onclick="home_page()">Выйти</button>
+</p>
 </p>
 </body>

@@ -113,6 +113,24 @@ static void print_time(uint8_t *buf, can_req *req) {
 	buf[8]=' ';
 }
 
+uint8_t print_plc_time(uint8_t *buf) {
+	HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+	print_dec(&buf[0],date.Date);
+	buf[2] = '/';
+	print_dec(&buf[3],date.Month);
+	buf[5] = '/';
+	print_dec(&buf[6],date.Year);
+	buf[8] = ' ';
+	print_dec(&buf[9],time.Hours);
+	buf[11]=':';
+	print_dec(&buf[12],time.Minutes);
+	buf[14]=':';
+	print_dec(&buf[15],time.Seconds);
+	buf[17]=' ';
+	return 18;
+}
+
 static void print_message(uint8_t *buf, can_req *req) {
 	uint8_t i = 0, j = 0;
 	print_time(&buf[0],req);
@@ -151,13 +169,14 @@ static void print_message(uint8_t *buf, can_req *req) {
 		buf[56] = 'T';
 		buf[57] = 'A';
 		buf[58] = ':';
-		buf[99] = 0x0D;
+
 		j = req->data_length;
 		if(j>8) j = 8;
 		for(i=0;i<j;i++) {
 			print_hex(&buf[59+5*i],req->data[i]);
 		}
 	}
+	buf[99] = 0x0D;
 
 	//buf[53+5*i] = 0x0d;
 }
@@ -475,7 +494,7 @@ void canViewerTask(void const * argument) {
 
 	for(;;)
 	{
-		debug_cnt++;
+		/*debug_cnt++;
 		if(debug_cnt>=800){
 			HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
 			debug_cnt = 0;
@@ -497,7 +516,7 @@ void canViewerTask(void const * argument) {
 
 			clear_can_msg();
 			update_can_msg();
-		}
+		}*/
 		if((answer_9b[0] & 0x7F)==0) {
 			answer_9b[1] = 0;
 			for(i=0;i<8;i++) {

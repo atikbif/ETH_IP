@@ -67,17 +67,22 @@ static const unsigned char PAGE_HEADER_DYN_CONTENT_TEXT[] = {
 };
 
 static const unsigned char PAGE_HEADER_CAN_CONTENT_TEXT[] = {
-  //"Content-length: 3000"
+  //"Content-length: 3018"
   //"Content-type: text/html"
   0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x4C,0x65,0x6E,0x67,0x74,0x68,0x3a,0x20,
-  0x33,0x30,0x30,0x30,0x0d,0x0a,
+  0x33,0x30,0x31,0x38,0x0d,0x0a,
   0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x74,0x79,0x70,0x65,0x3a,0x20,0x74,0x65,
   0x78,0x74,0x2f,0x68,0x74,0x6d,0x6c,0x0d,0x0a,0x0d,0x0a,
   //zero
   0x00
 };
 
+uint8_t dt,month,year,h,min,sec;
+RTC_TimeTypeDef plc_time = {0};
+RTC_DateTypeDef plc_date = {0};
+
 extern uint8_t can_req_msg[CAN_REQ_CNT][100];
+extern RTC_HandleTypeDef hrtc;
 
 uint8_t dynamic_page[8];
 
@@ -85,6 +90,7 @@ uint8_t dynamic_page[8];
 
 extern void clear_can_msg(void);
 extern void update_can_msg();
+extern uint8_t print_plc_time(uint8_t *buf);
 
 uint16_t add_conf_data(uint16_t offset) {
 	read_conf();
@@ -95,6 +101,7 @@ uint16_t add_conf_data(uint16_t offset) {
 uint16_t add_can_data(uint16_t offset) {
 	clear_can_msg();
 	update_can_msg();
+	offset+=print_plc_time((uint8_t*)&PAGE_BODY[offset]);
 	memcpy(&PAGE_BODY[offset],&can_req_msg[0][0], 3000);
 	return offset+3000;
 }
@@ -147,13 +154,20 @@ static void http_server_serve(struct netconn *conn)
 						netconn_write(conn, file.data, file.len, NETCONN_NOCOPY);
 						fs_close(&file);
 					}else if(strncmp((char const *)buf,"GET /dynamic.html?login",11)==0) {
-						if((strncmp((char const *)&buf[18],"login=admin",11)==0) && (strncmp((char const *)&buf[30],"password=admin",14)==0))
+						if((strncmp((char const *)&buf[18],"login=admin",11)==0) && (strncmp((char const *)&buf[30],"password=",9)==0))
 						{
-							update_dynamic_page();
-							sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_DYN_CONTENT_TEXT);
-							len = strlen(PAGE_BODY);
-							len = add_dyn_data(len);
-							netconn_write(conn, PAGE_BODY, len, NETCONN_NOCOPY);
+							if(buf[39]==conf[47] && buf[40]==conf[48] && buf[41]==conf[49] && buf[42]==conf[50]) {
+								update_dynamic_page();
+								sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_DYN_CONTENT_TEXT);
+								len = strlen(PAGE_BODY);
+								len = add_dyn_data(len);
+								netconn_write(conn, PAGE_BODY, len, NETCONN_NOCOPY);
+							}else {
+								fs_open(&file, "/404.html");
+								netconn_write(conn, file.data, file.len, NETCONN_NOCOPY);
+								fs_close(&file);
+							}
+
 						}else {
 							fs_open(&file, "/404.html");
 							netconn_write(conn, file.data, file.len, NETCONN_NOCOPY);
@@ -189,6 +203,53 @@ static void http_server_serve(struct netconn *conn)
 						fs_open(&file, "/index.html");
 						netconn_write(conn, file.data, file.len, NETCONN_NOCOPY);
 						fs_close(&file);
+					}else if(strncmp((char const *)buf,"GET /synchro.html?date=",23)==0) {
+						dt = ((uint8_t)buf[23]-'0')*10 + ((uint8_t)buf[24]-'0');
+						month = ((uint8_t)buf[25]-'0')*10 + ((uint8_t)buf[26]-'0');
+						year = ((uint8_t)buf[27]-'0')*10 + ((uint8_t)buf[28]-'0');
+						h = ((uint8_t)buf[29]-'0')*10 + ((uint8_t)buf[30]-'0');
+						min = ((uint8_t)buf[31]-'0')*10 + ((uint8_t)buf[32]-'0');
+						sec = ((uint8_t)buf[33]-'0')*10 + ((uint8_t)buf[34]-'0');
+						//HAL_RTC_GetTime(&hrtc, &plc_time, RTC_FORMAT_BIN);
+						//HAL_RTC_GetDate(&hrtc, &plc_date, RTC_FORMAT_BIN);
+						plc_time.Hours = h;
+						plc_time.Minutes = min;
+						plc_time.Seconds = sec;
+						plc_time.DayLightSaving = RTC_DAYLIGHTSAVING_NONE ;
+						plc_time.StoreOperation = RTC_STOREOPERATION_RESET;
+						plc_date.Date = dt;
+						plc_date.Month = month;
+						plc_date.Year = year;
+						fs_open(&file, "/404.html");
+						netconn_write(conn, file.data, file.len, NETCONN_NOCOPY);
+						fs_close(&file);
+
+
+
+						HAL_RTC_SetTime(&hrtc, &plc_time, RTC_FORMAT_BIN);
+						HAL_RTC_SetDate(&hrtc, &plc_date, RTC_FORMAT_BIN);
+
+					}else if(strncmp((char const *)buf,"GET /new_password.html",22)==0) {
+						fs_open(&file, "/new_password.html");
+						netconn_write(conn, file.data, file.len, NETCONN_NOCOPY);
+						fs_close(&file);
+					}else if(strncmp((char const *)buf,"GET /password_update.html?old_password=",39)==0) {
+						if(buf[39]==conf[47] && buf[40]==conf[48] && buf[41]==conf[49] && buf[42]==conf[50]) {
+							conf[47] = buf[39+18];
+							conf[48] = buf[40+18];
+							conf[49] = buf[41+18];
+							conf[50] = buf[42+18];
+							write_conf();
+							sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_DYN_CONTENT_TEXT);
+							len = strlen(PAGE_BODY);
+							len = add_dyn_data(len);
+							netconn_write(conn, PAGE_BODY, len, NETCONN_NOCOPY);
+							// 18 - length "XXXX&new_password="
+						}else {
+							fs_open(&file, "/404.html");
+							netconn_write(conn, file.data, file.len, NETCONN_NOCOPY);
+							fs_close(&file);
+						}
 					}
 					else
 					{

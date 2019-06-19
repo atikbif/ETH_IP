@@ -160,18 +160,18 @@ uint8_t read_gate_from_conf(uint8_t num) {
 void read_conf() {
 	EnableBKUPmem();
 	memcpy(conf,(uint32_t*) BKPSRAM_BASE, sizeof(conf));
-	DisableBKUPmem();
+	//DisableBKUPmem();
 }
 
 void write_conf() {
 	EnableBKUPmem();
 	memcpy((uint32_t*)BKPSRAM_BASE, conf, sizeof(conf));
-	DisableBKUPmem();
+	//DisableBKUPmem();
 }
 
 void set_default_conf() {
 	// start key
-	conf[0] = 0xA5;
+	conf[0] = 0xA6;
 	conf[1] = 0x4C;
 	// version
 	conf[2] = '1';
@@ -202,6 +202,8 @@ void set_default_conf() {
 	conf[38] = '1';conf[39] = '6';conf[40] = '8';
 	conf[41] = '0';conf[42] = '0';conf[43] = '1';
 	conf[44] = '0';conf[45] = '0';conf[46] = '1';
+
+	conf[47] = 'C';conf[48]='F';conf[49]='7';conf[50]='7';
 
 	write_conf();
 }
@@ -244,7 +246,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   read_conf();
-  if(conf[0]!=0xA5 || conf[1]!=0x4C) set_default_conf();
+  if(conf[0]!=0xA6 || conf[1]!=0x4C) set_default_conf();
 
   /* USER CODE END 2 */
 
@@ -283,8 +285,10 @@ void SystemClock_Config(void)
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
   /** Initializes the CPU, AHB and APB busses clocks 
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE
+                              |RCC_OSCILLATORTYPE_LSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
@@ -310,7 +314,7 @@ void SystemClock_Config(void)
     Error_Handler();
   }
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
-  PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
+  PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -350,7 +354,7 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-
+	while(1);
   /* USER CODE END Error_Handler_Debug */
 }
 
