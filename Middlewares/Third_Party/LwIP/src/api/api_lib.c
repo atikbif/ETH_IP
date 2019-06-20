@@ -798,9 +798,6 @@ netconn_write_partly(struct netconn *conn, const void *dataptr, size_t size,
  * @param how fully close or only shutdown one side?
  * @return ERR_OK if the netconn was closed, any other err_t on error
  */
-
-extern uint16_t thr_cnt;
-
 static err_t
 netconn_close_shutdown(struct netconn *conn, u8_t how)
 {
@@ -826,8 +823,6 @@ netconn_close_shutdown(struct netconn *conn, u8_t how)
 #endif /* LWIP_TCP */
   err = netconn_apimsg(lwip_netconn_do_close, &API_MSG_VAR_REF(msg));
   API_MSG_VAR_FREE(msg);
-
-  if(thr_cnt) thr_cnt--;
 
   return err;
 }

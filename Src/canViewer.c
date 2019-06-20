@@ -496,7 +496,7 @@ void canViewerTask(void const * argument) {
 
 	for(;;)
 	{
-		debug_cnt++;
+		/*debug_cnt++;
 		if(debug_cnt>=100){
 			//HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
 			debug_cnt = 0;
@@ -521,7 +521,7 @@ void canViewerTask(void const * argument) {
 
 			clear_can_msg();
 			update_can_msg();
-		}
+		}*/
 		if((answer_9b[0] & 0x7F)==0) {
 			answer_9b[1] = 0;
 			for(i=0;i<8;i++) {

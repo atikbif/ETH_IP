@@ -32,7 +32,7 @@ static const unsigned char PAGE_HEADER_200_OK[] = {
   0x00
 };
 
-static char PAGE_BODY[2512] ;
+static char PAGE_BODY[3512] ;
 uint16_t len = 0;
 
 static const unsigned char PAGE_HEADER_SERVER[] = {
@@ -67,10 +67,10 @@ static const unsigned char PAGE_HEADER_DYN_CONTENT_TEXT[] = {
 };
 
 static const unsigned char PAGE_HEADER_CAN_CONTENT_TEXT[] = {
-  //"Content-length: 2018"
+  //"Content-length: 3018"
   //"Content-type: text/html"
   0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x4C,0x65,0x6E,0x67,0x74,0x68,0x3a,0x20,
-  0x32,0x30,0x31,0x38,0x0d,0x0a,
+  0x33,0x30,0x31,0x38,0x0d,0x0a,
   0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x74,0x79,0x70,0x65,0x3a,0x20,0x74,0x65,
   0x78,0x74,0x2f,0x68,0x74,0x6d,0x6c,0x0d,0x0a,0x0d,0x0a,
   //zero
@@ -104,8 +104,8 @@ uint16_t add_can_data(uint16_t offset) {
 	clear_can_msg();
 	update_can_msg();
 	offset+=print_plc_time((uint8_t*)&PAGE_BODY[offset]);
-	memcpy(&PAGE_BODY[offset],&can_req_msg[0][0], 2000);
-	return offset+2000;
+	memcpy(&PAGE_BODY[offset],&can_req_msg[0][0], 3000);
+	return offset+3000;
 }
 
 uint16_t add_dyn_data(uint16_t offset) {
@@ -138,13 +138,15 @@ static void http_server_serve(struct netconn *conn)
 	u16_t buflen;
 	struct fs_file file;
 
+	//HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin,GPIO_PIN_SET);
+	netconn_set_recvtimeout(conn,500);
 	recv_err = netconn_recv(conn, &inbuf);
 
 	if (recv_err == ERR_OK)
 	{
 		if (netconn_err(conn) == ERR_OK)
 		{
-			//do
+			do
 			{
 				netbuf_data(inbuf, (void**)&buf, &buflen);
 				if ((buflen >=5) && (strncmp(buf, "GET /", 5) == 0))
@@ -261,10 +263,12 @@ static void http_server_serve(struct netconn *conn)
 						fs_close(&file);
 					}
 				}
-			}//while (netbuf_next(inbuf) >= 0);
+			}while (netbuf_next(inbuf) >= 0);
 
 		}
 	}
+
+	//HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin,GPIO_PIN_RESET);
 	netconn_close(conn);
 	netbuf_delete(inbuf);
 }
@@ -295,8 +299,6 @@ static void http_server_thread(void *arg)
 	        accept_err = netconn_accept(conn, &newconn);
 	        if(accept_err == ERR_OK)
 	        {
-	        	thr_cnt++;
-	        	if(thr_cnt>=2) HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
 	            /* serve connection */
 	            http_server_serve(newconn);
 

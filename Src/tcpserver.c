@@ -121,9 +121,7 @@ static void tcp_server_thread(void *arg)
           netconn_close(newconn);
           netconn_delete(newconn);
         }else {
-        	if(accept_err==-13) HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
-        	//if(err==ERR_CLSD)
-        	HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+
         }
       }
     }

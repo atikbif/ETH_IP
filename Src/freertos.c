@@ -195,13 +195,13 @@ void StartDefaultTask(void const * argument)
 		  NVIC_SystemReset();
 	  }
 	  osDelay(100);
-	  /*if(can_tmr==0) led1_start = 1;
+	  if(can_tmr==0) led1_start = 1;
 	  if(led1_start) {
 		  if(led1_cnt==0) HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,GPIO_PIN_SET);else HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,GPIO_PIN_RESET);
 		  led1_cnt++;if(led1_cnt>=led1_period) {led1_cnt=0;led1_start=0;}
 	  }
 	  if(led2_cnt==0) HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin,GPIO_PIN_SET);else HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin,GPIO_PIN_RESET);
-	  led2_cnt++;if(led2_cnt>=led2_period) led2_cnt=0;*/
+	  led2_cnt++;if(led2_cnt>=led2_period) led2_cnt=0;
 	  can_tmr++;
 	  //if(reset_flag==0)
 		  HAL_IWDG_Refresh(&hiwdg);
