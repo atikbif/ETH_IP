@@ -8,7 +8,7 @@
 #ifndef CANVIEWER_H_
 #define CANVIEWER_H_
 
-#define CAN_REQ_CNT		30
+#define CAN_REQ_CNT		20
 
 void canViewerTask(void const * argument);
 

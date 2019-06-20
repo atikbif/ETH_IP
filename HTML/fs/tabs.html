@@ -1,148 +1,131 @@
-<!DOCTYPE html>
+-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <style type="text/css">
   
-p{
-    font-family: Verdana, Arial, Helvetica, sans-serif; 
-    font-size: 14pt; 
-}
-   
-.onlythree{    
-	width: 50pt;   
-	background-color: #f0f0f0;	
-	border: 1; 
-	font-size: 14pt;
-	text-align: center;
-}    
+  .tabs { 
+	width: 100%; 
+	padding: 0px; 
+	margin: 0 auto;
+  }
+  .tabs>input { display:none; }
+  .tabs>div {
+    display: none;
+    padding: 20px 0 0;
+    border-top: 1px solid #abc;
+  }
+  .tabs>label {
+    display: inline-block;
+    margin: 0 0 -1px;
+    padding: 15px 25px;
+    font-weight: 600;
+    text-align: center;
+    color: #abc;
+    border: 1px solid transparent;
+  }
+  .tabs>input:checked + label {
+    color: #0af;
+    border: 1px solid #abc;
+    border-top: 2px solid #0af;
+    border-bottom: 1px solid #fff;
+  }
+  
+  .tabs>label:hover {
+    color: #789;
+    cursor: pointer;
+  }
 
-select {
+  #tab_1:checked ~ #txt_1,
+  #tab_2:checked ~ #txt_2,
+  #tab_3:checked ~ #txt_3,
+  #tab_4:checked ~ #txt_4 { display: block; }
+  
+  select {
 	font-size: 15pt;
-}
-
-.button {
-	position: relative;
-    background-color: #e0e0e0;
-    border: none;
-    font-size: 22pt;
-    color: black;
-    padding: 20pt;
-    width: 200pt;
-    text-align: center;
-    -webkit-transition-duration: 0.4s; /* Safari */
-    transition-duration: 0.4s;
-    text-decoration: none;
+    width: 80pt;
+  }
+  
+  .button{
+     display:inline-block;
+     padding:0.7em 1.7em;
+     margin:0 0.3em 0.3em 0;
+     border-radius:0.2em;
+     box-sizing: border-box;
+     text-decoration:none;
+     font-family:'Roboto',sans-serif;
+	 font-size: 22pt;
+     font-weight:400;
+     color:#303030;
+     background-color:rgba(255, 255, 255, 0.5);
+     box-shadow:inset 0 -0.6em 1em -0.35em rgba(0,0,0,0.17),inset 0 0.6em 2em -0.3em rgba(255,255,255,0.15),inset 0 0 0em 0.05em rgba(255,255,255,0.12);
+     text-align:center;
+     position:relative;
+  }
+  .button:active{
+   box-shadow:inset 0 0.6em 2em -0.3em rgba(0,0,0,0.15),inset 0 0 0em 0.05em rgba(255,255,255,0.12);
+  }
+  
+  p{
+      font-family: Verdana, Arial, Helvetica, sans-serif; 
+      font-size: 14pt; 
+  }
+   
+  .onlythree{    
+      width: 50pt;   
+      background-color: #f0f0f0;	
+      border: 1; 
+      font-size: 14pt;
+      text-align: center;
+  } 
+  
+  .toast {
     overflow: hidden;
-    cursor: pointer;
-	border-radius: 10pt;
-}
+    font-size: 0.875rem;
+    background-color: rgba(255, 255, 255, 0.5);
+    background-clip: padding-box;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 0.25rem;
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    display: none;
+    position: relative;
+    padding: 0.75rem 2rem 0.75rem 0.75rem;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
 
-.button:after {
-    content: "";
-    background: #f1f1f1;
-    display: block;
+  .toast__close {
     position: absolute;
-    padding-top: 300%;
-    padding-left: 350%;
-    margin-left: -20pt !important;
-    margin-top: -120%;
-    opacity: 0;
-    transition: all 0.8s
-}
-
-.button:active:after {
+    top: 0;
+    right: 10px;
     padding: 0;
-    margin: 0;
-    opacity: 1;
-    transition: 0s
-}
-
-.small_button {
-	position: relative;
-    background-color: #e5e5ff;
-    border: none;
-    font-size: 16pt;
-    color: black;
-    padding: 10pt;
-    width: 150pt;
-    text-align: center;
-    -webkit-transition-duration: 0.4s; /* Safari */
-    transition-duration: 0.4s;
-    text-decoration: none;
-    overflow: hidden;
+    background-color: transparent;
+    border: 0;
     cursor: pointer;
-	border-radius: 5pt;
-}
-
-.small_button:after {
-    content: "";
-    background: #f1f1f1;
-    display: block;
-    position: absolute;
-    padding-top: 300%;
-    padding-left: 350%;
-    margin-left: -20pt !important;
-    margin-top: -120%;
-    opacity: 0;
-    transition: all 0.8s
-}
-
-.small_button:active:after {
-    padding: 0;
+    float: right;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #000;
+    text-shadow: 0 1px 0 #fff;
+    opacity: 0.6;
+    appearance: button;
     margin: 0;
-    opacity: 1;
-    transition: 0s
-}
+    font-family: inherit;
+    border-radius: 0;
+  }
 
-.toast {
-  overflow: hidden;
-  font-size: 0.875rem;
-  background-color: rgba(255, 255, 255, 0.5);
-  background-clip: padding-box;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 0.25rem;
-  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-  display: none;
-  position: relative;
-  padding: 0.75rem 2rem 0.75rem 0.75rem;
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
+  .toast_show {
+    display: block;
+  }  
 
-.toast__close {
-  position: absolute;
-  top: 0;
-  right: 10px;
-  padding: 0;
-  background-color: transparent;
-  border: 0;
-  cursor: pointer;
-  float: right;
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1;
-  color: #000;
-  text-shadow: 0 1px 0 #fff;
-  opacity: 0.6;
-  appearance: button;
-  margin: 0;
-  font-family: inherit;
-  border-radius: 0;
-}
-
-.toast_show {
-  display: block;
-}  
-
-.toast:not(:last-child) {
-  margin-bottom: 0.75rem;
-}
-
+  .toast:not(:last-child) {
+    margin-bottom: 0.75rem;
+  }
   </style>
   <script>
-	  var xhr;
+	var xhr;
 	  
 	  function onload(){
 		xhr = new(XMLHttpRequest);
@@ -151,16 +134,18 @@ select {
 		
 	  }
 	  function read_can(){
-	    var rxhr;
-		rxhr = new(XMLHttpRequest);
-		rxhr.open("GET", "can.html?r=" + Math.random(), true); 
-		rxhr.responseType = "text";
-		rxhr.onload = function (oEvent) {
-			var full_answer = rxhr.response;
-			document.getElementById('cur_time').innerHTML = full_answer.substring(0,18);
-			document.getElementById('can_data').innerHTML = full_answer.substring(18);
+	    if(document.getElementById("tab_3").checked) {
+			var rxhr;
+			rxhr = new(XMLHttpRequest);
+			rxhr.open("GET", "can.html?r=" + Math.random(), true); 
+			rxhr.responseType = "text";
+			rxhr.onload = function (oEvent) {
+				var full_answer = rxhr.response;
+				document.getElementById('cur_time').innerHTML = full_answer.substring(0,18);
+				document.getElementById('can_data').innerHTML = full_answer.substring(18);
+			}
+			rxhr.send(null);
 		}
-		rxhr.send(null);
 	  }
 	  function read_data(){
 	    var rxhr;
@@ -408,8 +393,7 @@ select {
 	  return toast;
 	}
   </script>
-  
-  <title>НАСТРОЙКА ДДС-МТ</title>
+  <title>ДДС-МТ</title>
 </head>
 <body onload="onload()">
 
@@ -419,91 +403,116 @@ select {
 
 <div class="toasts" style="position: fixed; top: 15px; right: 15px; width: 250px;"></div>   
 
-<h1 style="text-align: center;">НАСТРОЙКА ДДС-МТ</h1>
+<div class="tabs">
+    <input type="radio" name="inset" value="" id="tab_1" checked>
+    <label for="tab_1">Настройка CAN</label>
 
-<p style="text-align: center;">
-Версия:<b id="version_high"></b>.<b id="version_low"></b>
-<br>
-<p style="text-align: center;">
-&nbsp;&nbsp;Время:&nbsp;&nbsp;<span id="cur_time">01/01/00	00:00:00</span>
-&nbsp;&nbsp;&nbsp;&nbsp;
-<button class = "small_button" type="button" onclick="synchro()">Синхронизация</button>
-</p>
-<p style="text-align: center;">
-Node 0:
-<select id="node0">
-  <option value="0">нет</option>
-  <option value="1">PC21-1</option>
-</select>
-&nbsp;&nbsp;
-Node 1:
-<select id="node1">
-  <option value="0">нет</option>
-  <option value="2">PC21-CD</option>
-  <option value="1">PC21-1</option>
-</select>
-&nbsp;&nbsp;
-Node 2:
-<select id="node2">
-  <option value="0">нет</option>
-  <option value="1">PC21-1</option>
-</select>
-<br><br> 
-Node 3:
-<select id="node3">
-  <option value="0">нет</option>
-  <option value="3">PC21-MC</option>
-  <option value="1">PC21-1</option>
-</select>
-&nbsp;&nbsp;
-Node 4:
-<select id="node4">
-  <option value="0">нет</option>
-  <option value="1">PC21-1</option>
-</select>
-&nbsp;&nbsp;
-Node 5:
-<select id="node5">
-  <option value="0">нет</option>
-  <option value="1">PC21-1</option>
-</select>
-<br><br> 
-Node 6:
-<select id="node6">
-  <option value="0">нет</option>
-  <option value="1">PC21-1</option>
-</select>
-<br><br> 
-IP адрес:   
-<input type="text" maxlength="3" class="onlythree" id="ip1"/>.    
-<input type="text" maxlength="3" class="onlythree" id="ip2"/>.    
-<input type="text" maxlength="3" class="onlythree" id="ip3"/>.    
-<input type="text" maxlength="3" class="onlythree" id="ip4"/>    
-<br><br>
-IP маска:   
-<input type="text" maxlength="3" class="onlythree" id="mask1"/>.    
-<input type="text" maxlength="3" class="onlythree" id="mask2"/>.    
-<input type="text" maxlength="3" class="onlythree" id="mask3"/>.    
-<input type="text" maxlength="3" class="onlythree" id="mask4"/>    
-<br><br>
-IP шлюз:   
-<input type="text" maxlength="3" class="onlythree" id="gate1"/>.    
-<input type="text" maxlength="3" class="onlythree" id="gate2"/>.    
-<input type="text" maxlength="3" class="onlythree" id="gate3"/>.    
-<input type="text" maxlength="3" class="onlythree" id="gate4"/>   
-</p> 
-<br><br>
-<p style="text-align: center;">
-<button class = "button" type="button" onclick="read_data()">Прочитать</button>
-<button class = "button" type="button" onclick="write_data()">Записать</button>
-<button class = "button" type="button" onclick="reset_device()">Перезапуск</button>
-</p>
+    <input type="radio" name="inset" value="" id="tab_2">
+    <label for="tab_2">Настройка IP</label>
 
-<pre id="can_data" style="text-align: center; color: #1010ff;"></pre>
-<p style="text-align: center;">
-<button class = "small_button" type="button" onclick="new_password()">Новый пароль</button>
-&nbsp;&nbsp;
-<button class = "small_button" type="button" onclick="home_page()">Выйти</button>
-</p>
-</p>
-</body>
+    <input type="radio" name="inset" value="" id="tab_3">
+    <label for="tab_3">CAN лог</label>
+    
+    <input type="radio" name="inset" value="" id="tab_4">
+    <label for="tab_4">Home</label>
+
+    <div id="txt_1">
+		<p style="text-align: center;">
+          Node 0:
+          <select id="node0">
+            <option value="0">нет</option>
+            <option value="1">PC21-1</option>
+          </select>
+          &nbsp;&nbsp;
+          Node 1:
+          <select id="node1">
+            <option value="0">нет</option>
+            <option value="2">PC21-CD</option>
+            <option value="1">PC21-1</option>
+          </select>
+          &nbsp;&nbsp;
+          Node 2:
+          <select id="node2">
+            <option value="0">нет</option>
+            <option value="1">PC21-1</option>
+          </select>
+          <br><br>
+          Node 3:
+          <select id="node3">
+            <option value="0">нет</option>
+            <option value="3">PC21-MC</option>
+            <option value="1">PC21-1</option>
+          </select>
+          &nbsp;&nbsp;
+          Node 4:
+          <select id="node4">
+            <option value="0">нет</option>
+            <option value="1">PC21-1</option>
+          </select>
+          &nbsp;&nbsp;
+          Node 5:
+          <select id="node5">
+            <option value="0">нет</option>
+            <option value="1">PC21-1</option>
+          </select>
+          <br><br>
+          Node 6:
+          <select id="node6">
+            <option value="0">нет</option>
+            <option value="1">PC21-1 </option>
+          </select>
+			
+          <br><br>
+              <button class = "button" type="button" onclick="read_data()">Прочитать</button>
+              <button class = "button" type="button" onclick="write_data()">Записать</button>
+              <button class = "button" type="button" onclick="reset_device()">Перезапуск</button>
+		</p>
+    </div>
+    <div id="txt_2">
+    	<p style="text-align: center;">
+          IP адрес:   
+          <input type="text" maxlength="3" class="onlythree" id="ip1"/>.    
+          <input type="text" maxlength="3" class="onlythree" id="ip2"/>.    
+          <input type="text" maxlength="3" class="onlythree" id="ip3"/>.    
+          <input type="text" maxlength="3" class="onlythree" id="ip4"/>    
+          <br><br>
+          IP маска:   
+          <input type="text" maxlength="3" class="onlythree" id="mask1"/>.    
+          <input type="text" maxlength="3" class="onlythree" id="mask2"/>.    
+          <input type="text" maxlength="3" class="onlythree" id="mask3"/>.    
+          <input type="text" maxlength="3" class="onlythree" id="mask4"/>    
+          <br><br>
+          IP шлюз:   
+          <input type="text" maxlength="3" class="onlythree" id="gate1"/>.    
+          <input type="text" maxlength="3" class="onlythree" id="gate2"/>.    
+          <input type="text" maxlength="3" class="onlythree" id="gate3"/>.    
+          <input type="text" maxlength="3" class="onlythree" id="gate4"/>   
+        </p> 
+        <p style="text-align: center;">
+          <button class = "button" type="button" onclick="read_data()">Прочитать</button>
+          <button class = "button" type="button" onclick="write_data()">Записать</button>
+          <button class = "button" type="button" onclick="reset_device()">Перезапуск</button>
+        </p>
+    </div>
+    <div id="txt_3">
+		<p style="text-align: center;">
+			<span id="cur_time" style="background-color: #f1f1f1;border: 2;border-radius: 5pt;font-size: 16pt;color: black;padding: 10pt;width: 150pt;">01/01/00	00:00:00</span>
+			&nbsp;&nbsp;&nbsp;&nbsp;
+			<button class = "button" type="button" onclick="synchro()" style="font-size: 16pt;">Синхронизация</button>
+		</p>
+        <pre id="can_data" style="text-align: center; color: #1010ff;"></pre>
+    </div>
+    <div id="txt_4">
+        <p style="text-align: center;">
+		  Модуль телеметрии ДДС-МТ
+		  <br><br>
+		  Версия ПО:<b id="version_high"></b>.<b id="version_low"></b>
+		  <br><br>
+          <button class = "button" type="button" onclick="new_password()">Изменить пароль</button>
+          &nbsp;&nbsp;
+          <button class = "button" type="button" onclick="home_page()">Выйти</button>
+        </p>
+    </div>
+</div>
+
+</body></html>

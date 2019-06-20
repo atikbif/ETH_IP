@@ -490,15 +490,17 @@ void canViewerTask(void const * argument) {
 	HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
 	while(HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) != 3) {osDelay(1);}*/
 
+	HAL_GPIO_WritePin(LED1_GPIO_Port,LED1_Pin,GPIO_PIN_SET);
+	HAL_GPIO_WritePin(LED2_GPIO_Port,LED2_Pin,GPIO_PIN_SET);
 	osDelay(1000);
 
 	for(;;)
 	{
-		/*debug_cnt++;
-		if(debug_cnt>=800){
-			HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
+		debug_cnt++;
+		if(debug_cnt>=100){
+			//HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
 			debug_cnt = 0;
-			cr.addr = 1;
+
 			HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
 			HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
 			cr.sec = time.Seconds;
@@ -507,7 +509,10 @@ void canViewerTask(void const * argument) {
 			cr.eoid = HAL_GetTick() & 0x1F;
 			cr.ss = 0x00;
 			uint32_t rv = HAL_RNG_GetRandomNumber(&hrng);
-			cr.data_length = ((rv & 0xFF) % 8) + 1;
+			cr.data_length = ((rv & 0xFF) % 6) + 1;
+			cr.service = (rv & 0xFF) % 8;
+			cr.addr = ((rv>>8)&0xFF) % 7;
+			cr.intern_addr = (rv>>16)&0xFF;
 			for(i=0;i<cr.data_length;i++) {
 				rv = HAL_RNG_GetRandomNumber(&hrng);
 				cr.data[i] = rv & 0xFF;
@@ -516,7 +521,7 @@ void canViewerTask(void const * argument) {
 
 			clear_can_msg();
 			update_can_msg();
-		}*/
+		}
 		if((answer_9b[0] & 0x7F)==0) {
 			answer_9b[1] = 0;
 			for(i=0;i<8;i++) {

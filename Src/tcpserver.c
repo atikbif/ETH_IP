@@ -40,7 +40,7 @@
 
 #include "ethip.h"
 
-#define TCPSERVER_THREAD_PRIO  ( tskIDLE_PRIORITY + 3 )
+#define TCPSERVER_THREAD_PRIO  ( tskIDLE_PRIORITY + 4 )
 
 
 
@@ -120,6 +120,10 @@ static void tcp_server_thread(void *arg)
           /* Close connection and discard connection identifier. */
           netconn_close(newconn);
           netconn_delete(newconn);
+        }else {
+        	if(accept_err==-13) HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+        	//if(err==ERR_CLSD)
+        	HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
         }
       }
     }
@@ -133,7 +137,7 @@ static void tcp_server_thread(void *arg)
 
 void tcp_server_init(void)
 {
-  sys_thread_new("tcpecho_thread", tcp_server_thread, NULL, DEFAULT_THREAD_STACKSIZE, TCPSERVER_THREAD_PRIO);
+  sys_thread_new("tcpecho_thread", tcp_server_thread, NULL, DEFAULT_THREAD_STACKSIZE*2, TCPSERVER_THREAD_PRIO);
 }
 /*-----------------------------------------------------------------------------------*/
 

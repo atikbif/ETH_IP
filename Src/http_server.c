@@ -32,7 +32,7 @@ static const unsigned char PAGE_HEADER_200_OK[] = {
   0x00
 };
 
-static char PAGE_BODY[3512] ;
+static char PAGE_BODY[2512] ;
 uint16_t len = 0;
 
 static const unsigned char PAGE_HEADER_SERVER[] = {
@@ -67,10 +67,10 @@ static const unsigned char PAGE_HEADER_DYN_CONTENT_TEXT[] = {
 };
 
 static const unsigned char PAGE_HEADER_CAN_CONTENT_TEXT[] = {
-  //"Content-length: 3018"
+  //"Content-length: 2018"
   //"Content-type: text/html"
   0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x4C,0x65,0x6E,0x67,0x74,0x68,0x3a,0x20,
-  0x33,0x30,0x31,0x38,0x0d,0x0a,
+  0x32,0x30,0x31,0x38,0x0d,0x0a,
   0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x74,0x79,0x70,0x65,0x3a,0x20,0x74,0x65,
   0x78,0x74,0x2f,0x68,0x74,0x6d,0x6c,0x0d,0x0a,0x0d,0x0a,
   //zero
@@ -92,6 +92,8 @@ extern void clear_can_msg(void);
 extern void update_can_msg();
 extern uint8_t print_plc_time(uint8_t *buf);
 
+uint16_t thr_cnt=0;
+
 uint16_t add_conf_data(uint16_t offset) {
 	read_conf();
 	memcpy(&PAGE_BODY[offset],&conf[2], 9+12*3);
@@ -102,8 +104,8 @@ uint16_t add_can_data(uint16_t offset) {
 	clear_can_msg();
 	update_can_msg();
 	offset+=print_plc_time((uint8_t*)&PAGE_BODY[offset]);
-	memcpy(&PAGE_BODY[offset],&can_req_msg[0][0], 3000);
-	return offset+3000;
+	memcpy(&PAGE_BODY[offset],&can_req_msg[0][0], 2000);
+	return offset+2000;
 }
 
 uint16_t add_dyn_data(uint16_t offset) {
@@ -142,7 +144,7 @@ static void http_server_serve(struct netconn *conn)
 	{
 		if (netconn_err(conn) == ERR_OK)
 		{
-			do
+			//do
 			{
 				netbuf_data(inbuf, (void**)&buf, &buflen);
 				if ((buflen >=5) && (strncmp(buf, "GET /", 5) == 0))
@@ -151,7 +153,7 @@ static void http_server_serve(struct netconn *conn)
 					{
 						update_dynamic_page();
 						fs_open(&file, "/user.html");
-						netconn_write(conn, file.data, file.len, NETCONN_NOCOPY);
+						netconn_write(conn, file.data, file.len, NETCONN_COPY);
 						fs_close(&file);
 					}else if(strncmp((char const *)buf,"GET /dynamic.html?login",11)==0) {
 						if((strncmp((char const *)&buf[18],"login=admin",11)==0) && (strncmp((char const *)&buf[30],"password=",9)==0))
@@ -161,16 +163,16 @@ static void http_server_serve(struct netconn *conn)
 								sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_DYN_CONTENT_TEXT);
 								len = strlen(PAGE_BODY);
 								len = add_dyn_data(len);
-								netconn_write(conn, PAGE_BODY, len, NETCONN_NOCOPY);
+								netconn_write(conn, PAGE_BODY, len, NETCONN_COPY);
 							}else {
 								fs_open(&file, "/404.html");
-								netconn_write(conn, file.data, file.len, NETCONN_NOCOPY);
+								netconn_write(conn, file.data, file.len, NETCONN_COPY);
 								fs_close(&file);
 							}
 
 						}else {
 							fs_open(&file, "/404.html");
-							netconn_write(conn, file.data, file.len, NETCONN_NOCOPY);
+							netconn_write(conn, file.data, file.len, NETCONN_COPY);
 							fs_close(&file);
 						}
 					}
@@ -193,15 +195,16 @@ static void http_server_serve(struct netconn *conn)
 						sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_CONTENT_TEXT);
 						len = strlen(PAGE_BODY);
 						len = add_conf_data(len);
-						netconn_write(conn, PAGE_BODY, len, NETCONN_NOCOPY);
+						netconn_write(conn, PAGE_BODY, len, NETCONN_COPY);
 					}else if(strncmp((char const *)buf,"GET /can.html",13)==0) {
 						sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_CAN_CONTENT_TEXT);
 						len = strlen(PAGE_BODY);
 						len = add_can_data(len);
-						netconn_write(conn, PAGE_BODY, len, NETCONN_NOCOPY);
+						netconn_write(conn, PAGE_BODY, len, NETCONN_COPY);
 					}else if(strncmp((char const *)&buf[9],(const char*)dynamic_page,8)==0) {
-						fs_open(&file, "/index.html");
-						netconn_write(conn, file.data, file.len, NETCONN_NOCOPY);
+						//fs_open(&file, "/index.html");
+						fs_open(&file, "/tabs.html");
+						netconn_write(conn, file.data, file.len, NETCONN_COPY);
 						fs_close(&file);
 					}else if(strncmp((char const *)buf,"GET /synchro.html?date=",23)==0) {
 						dt = ((uint8_t)buf[23]-'0')*10 + ((uint8_t)buf[24]-'0');
@@ -221,7 +224,7 @@ static void http_server_serve(struct netconn *conn)
 						plc_date.Month = month;
 						plc_date.Year = year;
 						fs_open(&file, "/404.html");
-						netconn_write(conn, file.data, file.len, NETCONN_NOCOPY);
+						netconn_write(conn, file.data, file.len, NETCONN_COPY);
 						fs_close(&file);
 
 
@@ -231,7 +234,7 @@ static void http_server_serve(struct netconn *conn)
 
 					}else if(strncmp((char const *)buf,"GET /new_password.html",22)==0) {
 						fs_open(&file, "/new_password.html");
-						netconn_write(conn, file.data, file.len, NETCONN_NOCOPY);
+						netconn_write(conn, file.data, file.len, NETCONN_COPY);
 						fs_close(&file);
 					}else if(strncmp((char const *)buf,"GET /password_update.html?old_password=",39)==0) {
 						if(buf[39]==conf[47] && buf[40]==conf[48] && buf[41]==conf[49] && buf[42]==conf[50]) {
@@ -243,22 +246,22 @@ static void http_server_serve(struct netconn *conn)
 							sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_DYN_CONTENT_TEXT);
 							len = strlen(PAGE_BODY);
 							len = add_dyn_data(len);
-							netconn_write(conn, PAGE_BODY, len, NETCONN_NOCOPY);
+							netconn_write(conn, PAGE_BODY, len, NETCONN_COPY);
 							// 18 - length "XXXX&new_password="
 						}else {
 							fs_open(&file, "/404.html");
-							netconn_write(conn, file.data, file.len, NETCONN_NOCOPY);
+							netconn_write(conn, file.data, file.len, NETCONN_COPY);
 							fs_close(&file);
 						}
 					}
 					else
 					{
 						fs_open(&file, "/404.html");
-						netconn_write(conn, file.data, file.len, NETCONN_NOCOPY);
+						netconn_write(conn, file.data, file.len, NETCONN_COPY);
 						fs_close(&file);
 					}
 				}
-			}while (netbuf_next(inbuf) >= 0);
+			}//while (netbuf_next(inbuf) >= 0);
 
 		}
 	}
@@ -292,11 +295,14 @@ static void http_server_thread(void *arg)
 	        accept_err = netconn_accept(conn, &newconn);
 	        if(accept_err == ERR_OK)
 	        {
+	        	thr_cnt++;
+	        	if(thr_cnt>=2) HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
 	            /* serve connection */
 	            http_server_serve(newconn);
 
 	            /* delete connection */
 	            netconn_delete(newconn);
+	            //if(thr_cnt) thr_cnt--;
 	        }
 	      }
 	    }
@@ -305,5 +311,5 @@ static void http_server_thread(void *arg)
 
 void http_server_init(void)
 {
-  sys_thread_new("http_thread", http_server_thread, NULL, DEFAULT_THREAD_STACKSIZE*1, HTTPSERVER_THREAD_PRIO);
+  sys_thread_new("http_thread", http_server_thread, NULL, DEFAULT_THREAD_STACKSIZE*2, HTTPSERVER_THREAD_PRIO);
 }
