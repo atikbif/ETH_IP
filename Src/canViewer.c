@@ -497,7 +497,7 @@ void canViewerTask(void const * argument) {
 	for(;;)
 	{
 		/*debug_cnt++;
-		if(debug_cnt>=100){
+		if(debug_cnt>=500){
 			//HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
 			debug_cnt = 0;
 
