@@ -11,6 +11,9 @@
 #include "stm32f4xx_hal.h"
 
 #include "main.h"
+#include "datetime.h"
+#include "crc.h"
+#include "canLogger.h"
 
 #define VIEW_TIME	3000
 #define UPD_TIME	10000
@@ -53,9 +56,29 @@ static uint16_t node_tmr[7] = {0,0,0,0,0,0,0};
 static uint16_t clusters_tmr = 0;
 static uint8_t clusters_update = 0;
 static uint8_t clusters_state = 0;
+static unsigned short remainBytes = 2048;
 
-uint32_t debug_time = 1;
+static struct logBuf* log;
+
 uint16_t debug_cnt = 0;
+
+#define CAN_TEST_LENGTH	9
+
+static uint8_t can_test_data[CAN_TEST_LENGTH][11] = {
+		{0x04,0x07,0x04,0x0F,0x1C,0x64,0xBC,0x00,0x00,0x00,0x00},	// 2 bytes - id, 1 byte - data length, 8 bytes - data
+		{0x04,0x07,0x04,0x0F,0x1E,0xC8,0x78,0x00,0x00,0x00,0x00},
+		{0x04,0x07,0x04,0x0F,0x1E,0x67,0x41,0x00,0x00,0x00,0x00},
+		{0x04,0x07,0x04,0x0F,0x1E,0x04,0x8E,0x00,0x00,0x00,0x00},
+		{0x04,0x07,0x04,0x0F,0x1E,0x01,0x6D,0x00,0x00,0x00,0x00},
+		{0x04,0x07,0x04,0x0F,0x1E,0x02,0x47,0x00,0x00,0x00,0x00},
+		{0x04,0x01,0x02,0x09,0x58,0x00,0x00,0x00,0x00,0x00,0x00},
+		{0x04,0x19,0x02,0x09,0xF1,0x00,0x00,0x00,0x00,0x00,0x00},
+		{0x04,0x09,0x02,0x09,0x9F,0x00,0x00,0x00,0x00,0x00,0x00},
+};
+
+static unsigned long extTime = 0;
+
+extern unsigned long cTime;
 
 typedef struct{
 	uint8_t addr;
@@ -89,6 +112,9 @@ static void add_can_request(can_req *req) {
 }
 
 static uint8_t hex_table[]={'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+
+static unsigned char crc_buf[64];
+static uint8_t debug_num = 0;
 
 static void print_hex(uint8_t *buf, uint8_t value) {
 	buf[0] = '0';
@@ -446,6 +472,26 @@ static void telemetry_work(uint16_t *tmr) {
 	}
 }
 
+static inline unsigned char writeByteToBuffer(unsigned char value) {
+	if(remainBytes) {
+		log->buf[2048-remainBytes] = value;
+	}else {
+		if(log->next->fillFlag==0) {
+			log->fillFlag = 1;
+			log = log->next;
+			remainBytes = 2048;
+			log->buf[0] = value;
+		}else return 0;
+	}
+	remainBytes--;
+	return 1;
+}
+
+static uint8_t get_free_buf_space(uint8_t value) {
+	if((value<=remainBytes) || log->next->fillFlag==0) return 1;
+	return 0;
+}
+
 void canViewerTask(void const * argument) {
 	can_req cr;
 	uint8_t eoid = 0;
@@ -493,11 +539,35 @@ void canViewerTask(void const * argument) {
 	HAL_GPIO_WritePin(LED1_GPIO_Port,LED1_Pin,GPIO_PIN_SET);
 	HAL_GPIO_WritePin(LED2_GPIO_Port,LED2_Pin,GPIO_PIN_SET);
 	osDelay(1000);
+	log = getFirstLog();
 
 	for(;;)
 	{
-		/*debug_cnt++;
-		if(debug_cnt>=500){
+		debug_cnt++;
+		if(debug_cnt>=30){
+			if(get_free_buf_space(1+2+4+1+can_test_data[debug_num][2]+1)) {
+				writeByteToBuffer(0x31);
+				crc_buf[0]=can_test_data[debug_num][0];writeByteToBuffer(crc_buf[0]);
+				crc_buf[1]=can_test_data[debug_num][1];writeByteToBuffer(crc_buf[1]);
+
+				crc_buf[2]=(cTime >> 24) & 0xFF;writeByteToBuffer(crc_buf[2]);
+				crc_buf[3]=(cTime >> 16) & 0xFF;writeByteToBuffer(crc_buf[3]);
+				crc_buf[4]=(cTime >> 8) & 0xFF;writeByteToBuffer(crc_buf[4]);
+				crc_buf[5]=cTime & 0xFF;writeByteToBuffer(crc_buf[5]);
+
+				crc_buf[6]=can_test_data[debug_num][2];writeByteToBuffer(crc_buf[6]);
+				for(i=0;i<crc_buf[6];i++) {
+					crc_buf[7+i]=can_test_data[debug_num][3+i];
+					writeByteToBuffer(crc_buf[7+i]);
+				}
+				writeByteToBuffer(GetCRC8(crc_buf,7+i));
+				debug_num++;
+				if(debug_num>=CAN_TEST_LENGTH) debug_num = 0;
+				//HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
+				//can_tmr = 0;
+			}
+
+
 			//HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
 			debug_cnt = 0;
 
@@ -521,7 +591,8 @@ void canViewerTask(void const * argument) {
 
 			clear_can_msg();
 			update_can_msg();
-		}*/
+			//can_tmr=0;
+		}
 		if((answer_9b[0] & 0x7F)==0) {
 			answer_9b[1] = 0;
 			for(i=0;i<8;i++) {
@@ -616,6 +687,32 @@ void canViewerTask(void const * argument) {
 				node_addr = (RxHeader.StdId>>3) & 0x7F;
 				//serv = RxHeader.StdId & 0x07;
 				intern_addr = RxData[1];
+
+				if((eoid==0x1F)&&(RxData[1]==0x0E)&&(RxHeader.DLC==6)) {
+					extTime = RxData[5];
+					extTime<<=8;extTime|=RxData[4];
+					extTime<<=8;extTime|=RxData[3];
+					extTime<<=8;extTime|=RxData[2];
+					updateCurrentTime(extTime);
+				}
+
+				if(get_free_buf_space(1+2+4+1+(RxHeader.DLC & 0xFF) + 1)) {
+					writeByteToBuffer(0x31);
+					crc_buf[0]=RxHeader.StdId >> 8;writeByteToBuffer(crc_buf[0]);
+					crc_buf[1]=RxHeader.StdId & 0xFF;writeByteToBuffer(crc_buf[1]);
+
+					crc_buf[2]=(cTime >> 24) & 0xFF;writeByteToBuffer(crc_buf[2]);
+					crc_buf[3]=(cTime >> 16) & 0xFF;writeByteToBuffer(crc_buf[3]);
+					crc_buf[4]=(cTime >> 8) & 0xFF;writeByteToBuffer(crc_buf[4]);
+					crc_buf[5]=cTime & 0xFF;writeByteToBuffer(crc_buf[5]);
+
+					crc_buf[6]=RxHeader.DLC & 0xFF;writeByteToBuffer(crc_buf[6]);
+					for(i=0;i<crc_buf[6];i++) {
+						crc_buf[7+i]=RxData[i];
+						writeByteToBuffer(crc_buf[7+i]);
+					}
+					writeByteToBuffer(GetCRC8(crc_buf,7+i));
+				}
 
 
 				cr.service = RxHeader.StdId & 0x07;
@@ -941,13 +1038,6 @@ void canViewerTask(void const * argument) {
 					}
 					break;
 				}
-				/*if(((RxData[0] & 0x1F)==0x1F)&&(RxData[1]==0x0E)&&(RxHeader.DLC==6)) {
-					extTime = RxData[5];
-					extTime<<=8;extTime|=RxData[4];
-					extTime<<=8;extTime|=RxData[3];
-					extTime<<=8;extTime|=RxData[2];
-					updateCurrentTime(extTime);
-				}*/
 			}
 		}
 		if(clusters_update) {

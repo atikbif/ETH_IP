@@ -57,11 +57,13 @@
 #include "rng.h"
 #include "rtc.h"
 #include "gpio.h"
+#include "fsmc.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
 #include <string.h>
+#include "canLogger.h"
 
 /* USER CODE END Includes */
 
@@ -83,6 +85,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+
+extern unsigned short bl_num;
+extern unsigned short page_num;
 
 /* USER CODE END PV */
 
@@ -243,10 +248,18 @@ int main(void)
   MX_CAN1_Init();
   //MX_IWDG_Init();
   MX_RNG_Init();
+  MX_FSMC_Init();
   /* USER CODE BEGIN 2 */
+
+  initLogger();
 
   read_conf();
   if(conf[0]!=0xA6 || conf[1]!=0x4C) set_default_conf();
+
+  /*bl_num =HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR2);
+  page_num = HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR3);
+  if(bl_num>=1024) bl_num=0;
+  if(page_num>=64) page_num=0;*/
 
   /* USER CODE END 2 */
 

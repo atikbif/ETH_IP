@@ -58,8 +58,11 @@
 /* USER CODE BEGIN Includes */     
 
 #include "canViewer.h"
+#include "canLogger.h"
 #include "stm32f4xx_hal.h"
 #include "iwdg.h"
+#include "udp_server.h"
+#include "datetime.h"
 
 /* USER CODE END Includes */
 
@@ -86,7 +89,10 @@
 uint16_t key_tmr = 0;
 extern uint16_t can_tmr;
 extern IWDG_HandleTypeDef hiwdg;
+
 osThreadId canViewerTaskHandle;
+osThreadId canLoggerTaskHandle;
+osThreadId datetimeTaskHandle;
 
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
@@ -158,6 +164,12 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(canViewer, canViewerTask, osPriorityNormal, 0, 1024);
   canViewerTaskHandle = osThreadCreate(osThread(canViewer), NULL);
 
+  osThreadDef(canLog, canLoggerTask, osPriorityNormal, 0, 1024);
+  canLoggerTaskHandle = osThreadCreate(osThread(canLog), NULL);
+
+  osThreadDef(dateTime, datetimeTask, osPriorityBelowNormal, 0, 128);
+  datetimeTaskHandle = osThreadCreate(osThread(dateTime), NULL);
+
   /* USER CODE END RTOS_THREADS */
 
 }
@@ -184,6 +196,7 @@ void StartDefaultTask(void const * argument)
 
   tcp_server_init();
   http_server_init();
+  udp_server_init();
   MX_IWDG_Init();
   /* Infinite loop */
   for(;;)
