@@ -8,6 +8,7 @@
 #include "datetime.h"
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
+#include "main.h"
 
 #define JD0 2451545 // дней до 01 янв 2000 ПН
 
@@ -46,6 +47,7 @@ unsigned long counterFromTime(void) {
 	sdt2.month = sDate.Month;
 	sdt2.year = sDate.Year + 2000;
 	cTime = EncodeDateTime(&sdt2);
+	//if(cTime) HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
 	return cTime;
 }
 

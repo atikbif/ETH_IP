@@ -273,8 +273,8 @@ void udp_server_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p
 							  case 1:cache_offset=1024;break;
 						  }
 						  //if(cache.buf[cache_offset+5]!=0xFF) HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
-						  for(i=0;i<1024;i++) answer[3+i] = cache.buf[cache_offset+i];
-						  //memcpy((unsigned char*)&answer[3],&cache.buf[cache_offset],1024);
+						  //for(i=0;i<1024;i++) answer[3+i] = cache.buf[cache_offset+i];
+						  memcpy((unsigned char*)&answer[3],&cache.buf[cache_offset],1024);
 						  crc = GetCRC16((unsigned char*)answer,3 + 1024);
 						  answer[3+1024]=crc>>8;
 						  answer[4+1024]=crc&0xFF;

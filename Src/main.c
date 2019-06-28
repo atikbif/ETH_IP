@@ -64,6 +64,7 @@
 
 #include <string.h>
 #include "canLogger.h"
+#include "fsmc_flash.h"
 
 /* USER CODE END Includes */
 
@@ -88,7 +89,8 @@
 
 extern unsigned short bl_num;
 extern unsigned short page_num;
-
+//static uint8_t wr_test[2048],rd_test[2048];
+extern NAND_HandleTypeDef hnand1;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -256,10 +258,43 @@ int main(void)
   read_conf();
   if(conf[0]!=0xA6 || conf[1]!=0x4C) set_default_conf();
 
-  /*bl_num =HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR2);
+  NAND_IDTypeDef NAND_ID;
+  NAND_AddressTypeDef NAND_Address;
+
+  //bl_num=0;page_num=0;
+
+  HAL_Delay(100);
+
+  /*HAL_NAND_Read_ID(&hnand1, &NAND_ID);
+
+   NAND_Address.Plane = 0;
+   NAND_Address.Block = bl_num;
+   NAND_Address.Page = page_num;*/
+
+
+  reset_flash();
+  HAL_Delay(100);
+  //erase_block(bl_num);
+
+  /*for(int j=0;j<2048;j++) {
+	  wr_test[j] = j;
+	  rd_test[j] = 0;
+  }
+  write_page(bl_num,page_num,wr_test);
+  read_page(bl_num,page_num,rd_test);
+
+  if(memcmp(wr_test, rd_test,2048) == 0 )
+  {
+	  for(int i=0;i<20;i++) {
+		  HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
+		  HAL_Delay(100);
+	  }
+  }*/
+
+  bl_num =HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR2);
   page_num = HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR3);
   if(bl_num>=1024) bl_num=0;
-  if(page_num>=64) page_num=0;*/
+  if(page_num>=64) page_num=0;
 
   /* USER CODE END 2 */
 
@@ -278,6 +313,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  HAL_GPIO_TogglePin(LED2_GPIO_Port,LED2_Pin);
+	  HAL_Delay(100);
   }
   /* USER CODE END 3 */
 }

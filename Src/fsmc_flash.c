@@ -102,10 +102,10 @@ unsigned char erase_block(unsigned short bl_n) {
 }
 
 unsigned char check_block(unsigned short bl_n) {
-	/*unsigned char i=0;
+	unsigned char i=0;
 	for(i=0;i<MAX_BAD_BLOCKS_CNT;i++) {
 		if(bad_blocks[i]==bl_n) return 0;
-	}*/
+	}
 	return 1;
 }
 
