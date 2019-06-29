@@ -84,6 +84,7 @@ static void tcp_server_thread(void *arg)
         if (accept_err == ERR_OK) 
         {
           close_flag = 0;
+          netconn_set_recvtimeout(newconn,10000);
           while (netconn_recv(newconn, &buf) == ERR_OK) 
           {
             do 
