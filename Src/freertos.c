@@ -167,7 +167,7 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(canLog, canLoggerTask, osPriorityAboveNormal, 0, 512);
   canLoggerTaskHandle = osThreadCreate(osThread(canLog), NULL);
 
-  osThreadDef(dateTime, datetimeTask, osPriorityBelowNormal, 0, 128);
+  osThreadDef(dateTime, datetimeTask, osPriorityBelowNormal, 0, 256);
   datetimeTaskHandle = osThreadCreate(osThread(dateTime), NULL);
 
   /* USER CODE END RTOS_THREADS */

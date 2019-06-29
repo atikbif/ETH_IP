@@ -41,6 +41,9 @@ void canLoggerTask(void const * argument) {
 
 	scan_bad_blocks();
 
+	// поиск ближайшего неиспорченного блока
+	while(check_block(bl_num)==0) {bl_num++;page_num=0;if(bl_num>=1024) bl_num=0;}
+
 	res=1;
 	for(i=page_num;i<64;i++) {
 		while(isFlashBusy()) {busy_cnt++;osDelay(1);}busy_cnt = 0;
@@ -59,71 +62,44 @@ void canLoggerTask(void const * argument) {
 			if(logs[i].fillFlag) {	// необходимо записать страницу
 				// поиск ближайшего неиспорченного блока
 				while(check_block(bl_num)==0) {bl_num++;page_num=0;if(bl_num>=1024) bl_num=0;}
-				while(isFlashBusy()) {busy_cnt++;osDelay(1);}
+				while(isFlashBusy()) {busy_cnt++;osDelay(1);}busy_cnt = 0;
 
 				if(page_num==0) {
-					// поиск ближайшего неиспорченного блока
-					while(check_block(bl_num)==0) {bl_num++;if(bl_num>=1024) bl_num=0;}
-					while(isFlashBusy()) {busy_cnt++;osDelay(1);}
-					busy_cnt = 0;
 					res = erase_block(bl_num);
-					//HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
 					// ошибка при стирании
 					while(res==FLASH_ERROR) {
 						add_bad_block(bl_num);
-						while(isFlashBusy()) {busy_cnt++;osDelay(1);}
-						busy_cnt = 0;
-						//mark_bad_block(bl_num);
+						while(isFlashBusy()) {busy_cnt++;osDelay(1);}busy_cnt = 0;
+						mark_bad_block(bl_num);
 						while(check_block(bl_num)==0) {bl_num++;page_num=0;if(bl_num>=1024) bl_num=0;}
-						while(isFlashBusy()) {busy_cnt++;osDelay(1);}
-						busy_cnt = 0;
+						while(isFlashBusy()) {busy_cnt++;osDelay(1);}busy_cnt = 0;
 						res = erase_block(bl_num);
 						osDelay(1);
 					}
 				}
 
-				//vTaskSuspendAll();
-
-				while(isFlashBusy()) {busy_cnt++;osDelay(1);}busy_cnt = 0;
-				for(j=0;j<2048;j++) tst[j] = 0xFF;
-				res = read_page(bl_num,page_num,tst);
-				//res = 1;
-
-				//for(j=0;j<2048;j++) if(tst[j]!=0xFF) {res=0;break;}
-				//if(res) HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
 				while(isFlashBusy()) {busy_cnt++;osDelay(1);}busy_cnt = 0;
 				res = write_page(bl_num,page_num,logs[i].buf);
 				for(j=0;j<2048;j++) tst[j] = 0;
 				res = read_page(bl_num,page_num,tst);
-
-#ifdef DEBUG_MODE
 				if(res==FLASH_OK) {
 					res = 1;
 					for(j=0;j<10;j++) if(tst[j]!=logs[i].buf[j]) {res=0;break;}
 					if(res) HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
 				}
-
-				//xTaskResumeAll();
-#endif
-				// ошибка при записи
-				while(res==FLASH_ERROR) {
-
-					add_bad_block(bl_num);
-					while(isFlashBusy()) {busy_cnt++;osDelay(1);}
-					busy_cnt = 0;
-					//mark_bad_block(bl_num);
-					while(check_block(bl_num)==0) {bl_num++;page_num=0;if(bl_num>=1024) bl_num=0;}
-					while(isFlashBusy()) {busy_cnt++;osDelay(1);}
-					busy_cnt = 0;
-					res = write_page(bl_num,page_num,logs[i].buf);
-				}
-				//if(res==FLASH_OK) HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
 				clearLogBuf(&logs[i]);
-				// увеличение номера страницы
-				page_num++;if(page_num>=64) {page_num=0;bl_num++;if(bl_num>=1024) bl_num=0;}
+				logs[i].fillFlag = 0;
+				if(res==0) {
+					mark_bad_block(bl_num);
+					bl_num++;page_num=0;
+					if(bl_num>=1024) bl_num=0;
+				}else {
+					// увеличение номера страницы
+					page_num++;
+					if(page_num>=64) {page_num=0;bl_num++;if(bl_num>=1024) bl_num=0;}
+				}
 				HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR2, bl_num);
 				HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR3, page_num);
-				logs[i].fillFlag = 0;
 				osDelay(1);
 			}
 		}

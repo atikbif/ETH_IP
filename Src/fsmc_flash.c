@@ -31,7 +31,6 @@ static unsigned char test_block(unsigned short bl_n) {
 	NAND_Address.Page = 0;
 	spare[0] = 0;
 	HAL_NAND_Read_SpareArea_8b(&hnand1, &NAND_Address,(uint8_t*)spare,1);
-	//HAL_NAND_Read_Page(&hnand1, &NAND_Address,spare,1);
 
 	if(spare[0]==0xFF) return 1;
 	add_bad_block(bl_n);
@@ -79,6 +78,10 @@ unsigned char write_page(unsigned short bl_n, unsigned short page_n, unsigned ch
 	res = HAL_NAND_Write_Page(&hnand1, &NAND_Address, ptr, 1);
 	_Sys_Flash_Buzy = 0;
 
+	if(res==HAL_TIMEOUT) {
+		hnand1.State = HAL_NAND_STATE_RESET;
+		return FLASH_ERROR;
+	}
 	if(res==HAL_OK) return FLASH_OK;
 	if(res==HAL_BUSY) return FLASH_BUSY;
 	return FLASH_ERROR;
@@ -96,6 +99,10 @@ unsigned char erase_block(unsigned short bl_n) {
 	res = HAL_NAND_Erase_Block(&hnand1, &NAND_Address);
 	_Sys_Flash_Buzy = 0;
 
+	if(res==HAL_TIMEOUT) {
+		hnand1.State = HAL_NAND_STATE_RESET;
+		return FLASH_ERROR;
+	}
 	if(res==HAL_OK) return FLASH_OK;
 	if(res==HAL_BUSY) return FLASH_BUSY;
 	return FLASH_ERROR;

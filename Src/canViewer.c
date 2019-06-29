@@ -548,7 +548,7 @@ void canViewerTask(void const * argument) {
 	{
 #ifdef DEBUG_MODE
 		debug_cnt++;
-		if(debug_cnt>=2){
+		if(debug_cnt>=1){
 			if(get_free_buf_space(1+2+4+1+can_test_data[debug_num][2]+1)) {
 				writeByteToBuffer(0x31);
 				crc_buf[0]=can_test_data[debug_num][0];writeByteToBuffer(crc_buf[0]);
@@ -565,15 +565,10 @@ void canViewerTask(void const * argument) {
 					writeByteToBuffer(crc_buf[7+i]);
 				}
 				writeByteToBuffer(GetCRC8(crc_buf,7+i));
-				//for(i=0;i<100;i++) writeByteToBuffer('0'+i);
 				debug_num++;
 				if(debug_num>=CAN_TEST_LENGTH) debug_num = 0;
 				//HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
-				//can_tmr = 0;
 			}
-
-
-			//HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
 			debug_cnt = 0;
 
 			HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
@@ -734,10 +729,6 @@ void canViewerTask(void const * argument) {
 				cr.data_length = RxHeader.DLC - 2;
 				for(i=0;i<cr.data_length;i++) cr.data[i] = RxData[2+i];
 				add_can_request(&cr);
-				//clear_can_msg();
-				//update_can_msg();
-
-				//answer_91[0]++;
 				switch(eoid) {
 				case 0x01:	// packed physical digits
 					if(intern_addr>0 && intern_addr<=16) {	// digital inputs
@@ -764,7 +755,6 @@ void canViewerTask(void const * argument) {
 									tmp|=byte_value;
 									if(pos<sizeof(answer_91)) answer_91[pos] = tmp;
 								}
-								//if(pos<sizeof(answer_91)) answer_91[pos] = tmp;
 							}
 						}
 						//answer_91[0] = RxHeader.DLC;
@@ -879,9 +869,6 @@ void canViewerTask(void const * argument) {
 								if(RxData[4]) answer_90[pos] = 0xFD;
 								else answer_90[pos] = 0xFF;
 							}
-							//tmp = 0x60|0x02;
-							//if(RxData[4]) answer_90[pos]&=~(tmp);else answer_90[pos]|=tmp;
-							//answer_90[pos]|=0x01;
 						}
 					}
 					break;
@@ -916,18 +903,6 @@ void canViewerTask(void const * argument) {
 						clusters_update = 1;
 						clusters_state = RxData[2];
 					}
-					/*answer_9b[1] = RxData[2];
-					for(i=0;i<8;i++) {
-						if((answer_9b[1] & (1<<i))==0) {
-							if(i<4) {
-								for(tmp=0;tmp<32;tmp++)	answer_97[i*32+tmp]=0;
-							}else {
-								for(tmp=0;tmp<32;tmp++)	answer_98[(i-4)*32+tmp]=0;
-							}
-							answer_96[i*2] = 0;
-							answer_96[i*2+1] = 0;
-						}
-					}*/
 					break;
 				case 0x0E:	// network packed deduced digitals
 					if(intern_addr>=1) {
