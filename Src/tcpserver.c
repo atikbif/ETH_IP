@@ -136,7 +136,7 @@ static void tcp_server_thread(void *arg)
 
 void tcp_server_init(void)
 {
-  sys_thread_new("tcpecho_thread", tcp_server_thread, NULL, DEFAULT_THREAD_STACKSIZE*2, TCPSERVER_THREAD_PRIO);
+  sys_thread_new("tcpecho_thread", tcp_server_thread, NULL, DEFAULT_THREAD_STACKSIZE, TCPSERVER_THREAD_PRIO);
 }
 /*-----------------------------------------------------------------------------------*/
 

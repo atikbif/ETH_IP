@@ -373,5 +373,5 @@ static void http_server_thread(void *arg)
 
 void http_server_init(void)
 {
-  sys_thread_new("http_thread", http_server_thread, NULL, DEFAULT_THREAD_STACKSIZE*2, HTTPSERVER_THREAD_PRIO);
+  sys_thread_new("http_thread", http_server_thread, NULL, DEFAULT_THREAD_STACKSIZE, HTTPSERVER_THREAD_PRIO);
 }
