@@ -19,6 +19,7 @@ static ftime_t sdt1;
 static sDateTime sdt2;
 
 unsigned long cTime = 0;
+extern uint16_t free_mem[8];
 
 const uint16_t day_offset[12] = {0, 31, 61,92, 122, 153, 184, 214, 245, 275,306, 337};
 
@@ -57,6 +58,7 @@ void datetimeTask(void const * argument) {
 
 	for(;;)
 	{
+		free_mem[5] = uxTaskGetStackHighWaterMark( NULL );
 		counterFromTime();
 		//portENABLE_INTERRUPTS();
 		osDelay(1000);

@@ -375,6 +375,15 @@ plug_holes(struct mem *mem)
   }
 }
 
+uint16_t get_free_lwip_memory() {
+	uint16_t res = 0;
+	while(ram[MEM_SIZE-1-res]==0xAA) {
+		res++;
+		if(res==MEM_SIZE-1) break;
+	}
+	return res;
+}
+
 /**
  * Zero the heap and initialize start, end and lowest-free
  */
@@ -388,13 +397,17 @@ mem_init(void)
 
   /* align the heap */
   ram = (u8_t *)LWIP_MEM_ALIGN(LWIP_RAM_HEAP_POINTER);
+  ram_end = (struct mem *)(void *)&ram[MEM_SIZE_ALIGNED];
+  for(uint16_t i=0;i<MEM_SIZE;i++) {
+	  ram[i] = 0xAA;
+  }
   /* initialize the start of the heap */
   mem = (struct mem *)(void *)ram;
   mem->next = MEM_SIZE_ALIGNED;
   mem->prev = 0;
   mem->used = 0;
   /* initialize the end of the heap */
-  ram_end = (struct mem *)(void *)&ram[MEM_SIZE_ALIGNED];
+
   ram_end->used = 1;
   ram_end->next = MEM_SIZE_ALIGNED;
   ram_end->prev = MEM_SIZE_ALIGNED;

@@ -31,6 +31,8 @@ static struct{
 	unsigned char ready;
 }cache;
 
+extern uint16_t free_mem[8];
+
 extern unsigned short bl_num;
 extern unsigned short page_num;
 extern unsigned char bad_cnt;
@@ -94,6 +96,7 @@ void udp_server_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p
 	data = (unsigned char*)(p->payload);
 	crc = GetCRC16(data,p->len);
 
+	free_mem[6] = uxTaskGetStackHighWaterMark( NULL );
 
 	if(crc==0)
 	{

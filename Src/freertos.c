@@ -86,6 +86,8 @@
 
 //extern uint8_t reset_flag;
 
+uint16_t free_mem[8];
+
 uint16_t key_tmr = 0;
 extern uint16_t can_tmr;
 extern IWDG_HandleTypeDef hiwdg;
@@ -161,13 +163,13 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
 
-  osThreadDef(canViewer, canViewerTask, osPriorityNormal, 0, 1024);
+  osThreadDef(canViewer, canViewerTask, osPriorityNormal, 0, 512);
   canViewerTaskHandle = osThreadCreate(osThread(canViewer), NULL);
 
   osThreadDef(canLog, canLoggerTask, osPriorityAboveNormal, 0, 512);
   canLoggerTaskHandle = osThreadCreate(osThread(canLog), NULL);
 
-  osThreadDef(dateTime, datetimeTask, osPriorityBelowNormal, 0, 256);
+  osThreadDef(dateTime, datetimeTask, osPriorityBelowNormal, 0, 128);
   datetimeTaskHandle = osThreadCreate(osThread(dateTime), NULL);
 
   /* USER CODE END RTOS_THREADS */
@@ -218,6 +220,7 @@ void StartDefaultTask(void const * argument)
 	  can_tmr++;
 	  //if(reset_flag==0)
 		  HAL_IWDG_Refresh(&hiwdg);
+	  free_mem[0] = uxTaskGetStackHighWaterMark( NULL );
   }
   /* USER CODE END StartDefaultTask */
 }

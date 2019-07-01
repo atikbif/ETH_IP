@@ -19,6 +19,8 @@ unsigned short page_num = 0;
 
 unsigned short busy_cnt = 0;
 
+extern uint16_t free_mem[8];
+
 void initLogger() {
 	int i = 0;
 	for(i=0;i<LOG_CNT-1;i++) {
@@ -58,6 +60,7 @@ void canLoggerTask(void const * argument) {
 
 	for(;;)
 	{
+		free_mem[4] = uxTaskGetStackHighWaterMark( NULL );
 		for(i=0;i<LOG_CNT;i++) {
 			if(logs[i].fillFlag) {	// необходимо записать страницу
 				// поиск ближайшего неиспорченного блока

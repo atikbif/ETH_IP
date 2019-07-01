@@ -18,9 +18,15 @@
 #include "canViewer.h"
 
 extern uint8_t conf[64];
+extern uint16_t free_mem[8];
 
 extern void read_conf();
 extern void write_conf();
+
+extern uint16_t free_mem[8];
+
+extern uint16_t get_free_lwip_memory();
+extern uint16_t get_free_freertos_mem();
 
 //uint8_t reset_flag = 0;
 
@@ -132,10 +138,22 @@ uint16_t add_conf_data(uint16_t offset) {
 }
 
 uint16_t add_can_data(uint16_t offset) {
+	uint16_t tmp = 0;
 	clear_can_msg();
-	update_can_msg();
+
+	//update_can_msg();
 	offset+=print_plc_time((uint8_t*)&PAGE_BODY[offset]);
-	memcpy(&PAGE_BODY[offset],&can_req_msg[0][0], 5000);
+	tmp = offset;
+	tmp+=sprintf(&PAGE_BODY[tmp],"DEF:  (%d) \n",free_mem[0]);
+	tmp+=sprintf(&PAGE_BODY[tmp],"HTTP:  (%d) \n",free_mem[1]);
+	tmp+=sprintf(&PAGE_BODY[tmp],"TCP:  (%d) \n",free_mem[2]);
+	tmp+=sprintf(&PAGE_BODY[tmp],"CAN:  (%d) \n",free_mem[3]);
+	tmp+=sprintf(&PAGE_BODY[tmp],"LOG:  (%d) \n",free_mem[4]);
+	tmp+=sprintf(&PAGE_BODY[tmp],"TIME:  (%d) \n",free_mem[5]);
+	tmp+=sprintf(&PAGE_BODY[tmp],"UDP:  (%d) \n",free_mem[6]);
+	tmp+=sprintf(&PAGE_BODY[tmp],"LWIP:  (%d) \n",get_free_lwip_memory());
+	tmp+=sprintf(&PAGE_BODY[tmp],"RTOS:  (%d) \n",get_free_freertos_mem());
+	//memcpy(&PAGE_BODY[offset],&can_req_msg[0][0], 5000);
 	return offset+5000;
 }
 
@@ -179,6 +197,8 @@ static void http_server_serve(struct netconn *conn)
 	{
 		if (netconn_err(conn) == ERR_OK)
 		{
+
+			free_mem[1] = uxTaskGetStackHighWaterMark( NULL );
 			//do
 			//{
 				netbuf_data(inbuf, (void**)&buf, &buflen);
@@ -373,5 +393,5 @@ static void http_server_thread(void *arg)
 
 void http_server_init(void)
 {
-  sys_thread_new("http_thread", http_server_thread, NULL, DEFAULT_THREAD_STACKSIZE*2, HTTPSERVER_THREAD_PRIO);
+  sys_thread_new("http_thread", http_server_thread, NULL, DEFAULT_THREAD_STACKSIZE, HTTPSERVER_THREAD_PRIO);
 }

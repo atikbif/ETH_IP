@@ -50,6 +50,7 @@ extern uint8_t eth_ip_state;
 extern uint16_t eth_ip_tmr;
 
 extern uint8_t conf[64];
+extern uint16_t free_mem[8];
 
 static uint16_t node_tmr[7] = {0,0,0,0,0,0,0};
 
@@ -546,6 +547,7 @@ void canViewerTask(void const * argument) {
 
 	for(;;)
 	{
+		free_mem[3] = uxTaskGetStackHighWaterMark( NULL );
 #ifdef DEBUG_MODE
 		debug_cnt++;
 		if(debug_cnt>=1){

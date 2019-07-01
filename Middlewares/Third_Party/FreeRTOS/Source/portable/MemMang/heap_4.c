@@ -326,12 +326,22 @@ void vPortInitialiseBlocks( void )
 }
 /*-----------------------------------------------------------*/
 
+uint16_t get_free_freertos_mem() {
+	uint16_t res =0;
+	for(uint16_t i = 0;i<configTOTAL_HEAP_SIZE;i++) {
+		if(ucHeap[configTOTAL_HEAP_SIZE-1-i]==0xAA) res++;
+	}
+	return res;
+}
+
 static void prvHeapInit( void )
 {
 BlockLink_t *pxFirstFreeBlock;
 uint8_t *pucAlignedHeap;
 size_t uxAddress;
 size_t xTotalHeapSize = configTOTAL_HEAP_SIZE;
+
+	for(uint16_t i=0;i<configTOTAL_HEAP_SIZE;i++) ucHeap[i]=0xAA;
 
 	/* Ensure the heap starts on a correctly aligned boundary. */
 	uxAddress = ( size_t ) ucHeap;

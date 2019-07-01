@@ -42,7 +42,7 @@
 
 #define TCPSERVER_THREAD_PRIO  ( tskIDLE_PRIORITY + 4 )
 
-
+extern uint16_t free_mem[8];
 
 /*-----------------------------------------------------------------------------------*/
 static void tcp_server_thread(void *arg)
@@ -87,6 +87,7 @@ static void tcp_server_thread(void *arg)
           netconn_set_recvtimeout(newconn,10000);
           while (netconn_recv(newconn, &buf) == ERR_OK) 
           {
+        	free_mem[2] = uxTaskGetStackHighWaterMark( NULL );
             do 
             {
               netbuf_data(buf, &data, &len);
@@ -136,7 +137,7 @@ static void tcp_server_thread(void *arg)
 
 void tcp_server_init(void)
 {
-  sys_thread_new("tcpecho_thread", tcp_server_thread, NULL, DEFAULT_THREAD_STACKSIZE*2, TCPSERVER_THREAD_PRIO);
+  sys_thread_new("tcpecho_thread", tcp_server_thread, NULL, DEFAULT_THREAD_STACKSIZE, TCPSERVER_THREAD_PRIO);
 }
 /*-----------------------------------------------------------------------------------*/
 
