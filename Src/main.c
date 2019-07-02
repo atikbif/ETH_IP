@@ -76,6 +76,11 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
+//#define FLASH_TEST	1
+
+#define NAND_PAGE_SIZE          ((uint16_t)0x0800) /* 2 * 1024 bytes per page w/o Spare Area */
+#define BUFFER_SIZE             (NAND_PAGE_SIZE)
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -89,15 +94,21 @@
 
 extern unsigned short bl_num;
 extern unsigned short page_num;
+
 extern NAND_HandleTypeDef hnand1;
 
 NAND_IDTypeDef NAND_ID;
+
+#ifdef FLASH_TEST
 NAND_AddressTypeDef NAND_Address;
 
-//static uint8_t TxBuffer[2048];
-//static uint8_t RxBuffer[2048];
-//static uint8_t save[2048];
-//static uint8_t spare[64];
+static uint8_t TxBuffer[BUFFER_SIZE];
+static uint8_t RxBuffer[BUFFER_SIZE];
+static uint8_t spare[64];
+uint16_t i=0,j=0;
+uint16_t p_num=0;
+
+#endif
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -127,7 +138,7 @@ static void EnableBKUPmem(void)
    while (!(PWR->CSR & (PWR_FLAG_BRR)));
 }
 
-static void DisableBKUPmem(void)
+__attribute__((unused)) static void DisableBKUPmem(void)
 {
    HAL_PWR_DisableBkUpAccess();
 }
@@ -262,67 +273,91 @@ int main(void)
 
   HAL_NAND_Read_ID(&hnand1, &NAND_ID);
 
+#ifdef FLASH_TEST
 
-    /*uint8_t err = 0;
-    bl_num = 0;//489
-    page_num = 0;
+   uint16_t err = 0;
+   bl_num = 0;
+   p_num = 0;
 
-    while(1) {
-  	HAL_NAND_Reset(&hnand1);
-  	NAND_Address.Plane = 0;
-  	NAND_Address.Block = bl_num;
-  	NAND_Address.Page = page_num;
-  	spare[0] = 0;
-  	if(page_num==0) {
-  		HAL_NAND_Read_SpareArea_8b(&hnand1, &NAND_Address, spare, 1);
-  		if(spare[0]==0xFF) {
-  			HAL_NAND_Erase_Block(&hnand1, &NAND_Address);
-  		}else {
-  			err++;
-  			bl_num++;
-  			if(bl_num>=1024) break;
-  			continue;
-  		}
-  	}
-  	for (uint32_t i = 0; i < 2048; i++) {
-  		TxBuffer[i] = i+page_num;
-  		RxBuffer[i] = 0;
-  	}
+   for(i=0;i<1024;i++) {
+ 	  NAND_Address.Plane = 0;
+ 	  NAND_Address.Block = i;
+ 	  NAND_Address.Page = p_num;
+ 	  HAL_NAND_Erase_Block(&hnand1, &NAND_Address);
+   }
 
-  	HAL_NAND_Read_Page(&hnand1, &NAND_Address, save, 1);
-  	if(HAL_NAND_Write_Page(&hnand1, &NAND_Address, TxBuffer, 1)==HAL_TIMEOUT) HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_7);
-  	HAL_NAND_Read_Page(&hnand1, &NAND_Address, RxBuffer, 1);
+   /*NAND_Address.Plane = 0;
+   NAND_Address.Block = 489;
+   NAND_Address.Page = 0;
+   for(j=0;j<64;j++) spare[j]=0;
+   NAND_Address.Plane = 0;
+   NAND_Address.Block = 489;
+   NAND_Address.Page = j;
+   HAL_NAND_Write_SpareArea_8b(&hnand1, &NAND_Address,spare,1);*/
+
+   HAL_Delay(100);
+
+   while(1) {
+ 	if(bl_num>=1024) break;
+ 	NAND_Address.Plane = 0;
+ 	NAND_Address.Block = bl_num;
+ 	NAND_Address.Page = p_num;
+ 	spare[0] = 0;
+ 	if(p_num==0) {
+ 		HAL_NAND_Read_SpareArea_8b(&hnand1, &NAND_Address, spare, 1);
+ 		if(spare[0]==0xFF) {
+ 			HAL_NAND_Erase_Block(&hnand1, &NAND_Address);
+ 		}else {
+ 			err++;
+ 			bl_num++;p_num=0;
+ 			continue;
+ 		}
+ 	}
+ 	for (uint32_t i = 0; i < BUFFER_SIZE; i++) {
+ 		TxBuffer[i] = i;
+ 		RxBuffer[i] = 0;
+ 	}
+ 	if(HAL_NAND_Write_Page(&hnand1, &NAND_Address, TxBuffer, 1)==HAL_TIMEOUT) {
+ 		hnand1.State = HAL_NAND_STATE_RESET;
+ 	}
+ 	HAL_NAND_Read_Page(&hnand1, &NAND_Address, RxBuffer, 1);
 
 
-  	if(memcmp(TxBuffer, RxBuffer,2048) == 0 )  {
-  		if(page_num==0) {HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6);}
-  		HAL_NAND_Write_Page(&hnand1, &NAND_Address, save, 1);
-  	}else {
-  		if(page_num==0) err++;
-  		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_7);
-  	}
+ 	if(memcmp(TxBuffer, RxBuffer,2048) == 0 )  {
+ 		if(p_num==0) {HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6);}
+ 	}else {
+ 		NAND_Address.Plane = 0;
+ 		NAND_Address.Block = bl_num;
+ 		NAND_Address.Page = 0;
+ 		HAL_NAND_Write_SpareArea_8b(&hnand1,&NAND_Address,spare,1);
+ 		bl_num++;
+ 		p_num=0;
+ 		err++;
+ 		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_7);
 
+ 	}
+ 	p_num++;
+ 	if(p_num>=64) {
+ 		p_num = 0;
+ 		bl_num++;
+ 	}
 
-  	page_num++;
-  	if(page_num>=64) {
-  		page_num = 0;
-  		bl_num++;
-  	}
-  	if(bl_num>=1024) break;
+   }
+   if(err) {
+ 	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6,GPIO_PIN_RESET);
+ 	  HAL_Delay(3000);
+ 	  for(uint32_t i = 0; i < err*2; i++) {
+ 		  HAL_Delay(1000);
+ 		  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6);
+ 	  }
+ 	  HAL_Delay(3000);
+   }
 
-    }
-    if(err) {
-  	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6,GPIO_PIN_RESET);
-  	  HAL_Delay(3000);
-  	  for(uint32_t i = 0; i < err*2; i++) {
-  		  HAL_Delay(1000);
-  		  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6);
-  	  }
-  	  HAL_Delay(3000);
-    }*/
+#endif
 
-  bl_num =HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR2);
+  bl_num = HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR2);
   page_num = HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR3);
+
   if(bl_num>=1024) bl_num=0;
   if(page_num>=64) page_num=0;
 

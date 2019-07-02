@@ -549,6 +549,8 @@ void canViewerTask(void const * argument) {
 #ifdef DEBUG_MODE
 		debug_cnt++;
 		if(debug_cnt>=1){
+			HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+			HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
 			if(get_free_buf_space(1+2+4+1+can_test_data[debug_num][2]+1)) {
 				writeByteToBuffer(0x31);
 				crc_buf[0]=can_test_data[debug_num][0];writeByteToBuffer(crc_buf[0]);
@@ -565,32 +567,33 @@ void canViewerTask(void const * argument) {
 					writeByteToBuffer(crc_buf[7+i]);
 				}
 				writeByteToBuffer(GetCRC8(crc_buf,7+i));
+
+				cr.sec = time.Seconds;
+				cr.min = time.Minutes;
+				cr.houre = time.Hours;
+				cr.eoid = can_test_data[debug_num][3] & 0x1F;
+				cr.ss = can_test_data[debug_num][3] >> 5;
+				//uint32_t rv = crc_buf[6];
+				cr.data_length = crc_buf[6];
+				cr.service = can_test_data[debug_num][1] & 0x07;
+				cr.addr = (can_test_data[debug_num][1] >> 3) & 0x0F;
+				cr.intern_addr = can_test_data[debug_num][4];
+				for(i=0;i<cr.data_length;i++) {
+					cr.data[i] = can_test_data[debug_num][5+i];
+				}
+				add_can_request(&cr);
+
+				clear_can_msg();
+				update_can_msg();
+
 				debug_num++;
 				if(debug_num>=CAN_TEST_LENGTH) debug_num = 0;
 				//HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
 			}
 			debug_cnt = 0;
 
-			HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
-			HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
-			cr.sec = time.Seconds;
-			cr.min = time.Minutes;
-			cr.houre = time.Hours;
-			cr.eoid = HAL_GetTick() & 0x1F;
-			cr.ss = 0x00;
-			uint32_t rv = HAL_RNG_GetRandomNumber(&hrng);
-			cr.data_length = ((rv & 0xFF) % 6) + 1;
-			cr.service = (rv & 0xFF) % 8;
-			cr.addr = ((rv>>8)&0xFF) % 7;
-			cr.intern_addr = (rv>>16)&0xFF;
-			for(i=0;i<cr.data_length;i++) {
-				rv = HAL_RNG_GetRandomNumber(&hrng);
-				cr.data[i] = rv & 0xFF;
-			}
-			add_can_request(&cr);
 
-			clear_can_msg();
-			update_can_msg();
+
 			//can_tmr=0;
 		}
 #endif
