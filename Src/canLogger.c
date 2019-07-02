@@ -98,8 +98,8 @@ void canLoggerTask(void const * argument) {
 					page_num++;
 					if(page_num>=64) {page_num=0;bl_num++;if(bl_num>=1024) bl_num=0;}
 				}
-				//HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR2, bl_num);
-				//HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR3, page_num);
+				HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR2, bl_num);
+				HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR3, page_num);
 				osDelay(1);
 			}
 		}
