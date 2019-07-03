@@ -182,6 +182,16 @@ uint8_t read_gate_from_conf(uint8_t num) {
 	return 0;
 }
 
+uint16_t read_id_from_conf() {
+	uint16_t res = 0;
+	res = ((uint16_t)conf[47]-'0')*10000;
+	res+= ((uint16_t)conf[48]-'0')*1000;
+	res+= ((uint16_t)conf[49]-'0')*100;
+	res+= ((uint16_t)conf[50]-'0')*10;
+	res+= ((uint16_t)conf[51]-'0');
+	return res;
+}
+
 void read_conf() {
 	EnableBKUPmem();
 	memcpy(conf,(uint32_t*) BKPSRAM_BASE, sizeof(conf));
@@ -197,7 +207,7 @@ void write_conf() {
 void set_default_conf() {
 	// start key
 	conf[0] = 0xA6;
-	conf[1] = 0x4C;
+	conf[1] = 0x4D;
 	// version
 	conf[2] = '1';
 	conf[3] = '0';
@@ -228,7 +238,11 @@ void set_default_conf() {
 	conf[41] = '0';conf[42] = '0';conf[43] = '1';
 	conf[44] = '0';conf[45] = '0';conf[46] = '1';
 
-	conf[47] = 'C';conf[48]='F';conf[49]='7';conf[50]='7';
+
+
+	conf[47]='0';conf[48]='0';conf[49]='0';conf[50]='0';conf[51]='0';
+
+	conf[52] = 'C';conf[53]='F';conf[54]='7';conf[55]='7';
 
 	write_conf();
 }
@@ -364,7 +378,7 @@ int main(void)
   initLogger();
 
   read_conf();
-  if(conf[0]!=0xA6 || conf[1]!=0x4C) set_default_conf();
+  if(conf[0]!=0xA6 || conf[1]!=0x4D) set_default_conf();
 
   HAL_Delay(100);
 

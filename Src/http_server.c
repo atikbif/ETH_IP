@@ -22,6 +22,8 @@ extern uint8_t conf[64];
 extern void read_conf();
 extern void write_conf();
 
+extern uint16_t read_id_from_conf();
+
 //uint8_t reset_flag = 0;
 
 static const unsigned char PAGE_HEADER_200_OK[] = {
@@ -53,11 +55,11 @@ static const unsigned char PAGE_HEADER_SERVER[] = {
   0x00
 };
 static const unsigned char PAGE_HEADER_CONTENT_TEXT[] = {
-  //"Content-length: 45"
+  //"Content-length: 50"
   //"Connection: Close"
   //"Content-type: text/html"
   0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x4C,0x65,0x6E,0x67,0x74,0x68,0x3a,0x20,
-  0x34,0x35,0x0d,0x0a,
+  0x35,0x30,0x0d,0x0a,
   0x43,0x6f,0x6e,0x6e,0x65,0x63,0x74,0x69,0x6f,0x6e,0x3a,0x20,0x43,0x6c,0x6f,0x73,
   0x65,0x0d,0x0a,
   0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x74,0x79,0x70,0x65,0x3a,0x20,0x74,0x65,
@@ -127,8 +129,8 @@ uint16_t thr_cnt=0;
 
 uint16_t add_conf_data(uint16_t offset) {
 	read_conf();
-	memcpy(&PAGE_BODY[offset],&conf[2], 9+12*3);
-	return offset+9+12*3;
+	memcpy(&PAGE_BODY[offset],&conf[2], 9+12*3+5);
+	return offset+9+12*3+5;
 }
 
 uint16_t add_can_data(uint16_t offset) {
@@ -136,6 +138,16 @@ uint16_t add_can_data(uint16_t offset) {
 	update_can_msg();
 	offset+=print_plc_time((uint8_t*)&PAGE_BODY[offset]);
 	memcpy(&PAGE_BODY[offset],&can_req_msg[0][0], 5000);
+
+	/*uint16_t cn = read_id_from_conf();
+	PAGE_BODY[offset] = (cn&0xFF)/100 + '0';
+	PAGE_BODY[offset+1] = ((cn&0xFF)%100)/10 + '0';
+	PAGE_BODY[offset+2] = (cn&0xFF)%10 + '0';
+	PAGE_BODY[offset+3] = ' ';
+	PAGE_BODY[offset+4] = ((cn>>8)&0xFF)/100 + '0';
+	PAGE_BODY[offset+5] = (((cn>>8)&0xFF)%100)/10 + '0';
+	PAGE_BODY[offset+6] = (cn>>8)%10 + '0';
+	PAGE_BODY[offset+7] = ' ';*/
 	return offset+5000;
 }
 
@@ -179,8 +191,8 @@ static void http_server_serve(struct netconn *conn)
 	{
 		if (netconn_err(conn) == ERR_OK)
 		{
-			//do
-			//{
+			do
+			{
 				netbuf_data(inbuf, (void**)&buf, &buflen);
 				if ((buflen >=5) && (strncmp(buf, "GET /", 5) == 0))
 				{
@@ -193,7 +205,7 @@ static void http_server_serve(struct netconn *conn)
 					}else if(strncmp((char const *)buf,"GET /dynamic.html?login",11)==0) {
 						if((strncmp((char const *)&buf[18],"login=admin",11)==0) && (strncmp((char const *)&buf[30],"password=",9)==0))
 						{
-							if(buf[39]==conf[47] && buf[40]==conf[48] && buf[41]==conf[49] && buf[42]==conf[50]) {
+							if(buf[39]==conf[52] && buf[40]==conf[53] && buf[41]==conf[54] && buf[42]==conf[55]) {
 								update_dynamic_page();
 								sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_DYN_CONTENT_TEXT);
 								len = strlen(PAGE_BODY);
@@ -215,7 +227,7 @@ static void http_server_serve(struct netconn *conn)
 						if(strncmp((char const *)&buf[21],(const char*)dynamic_page,8)==0) {
 							sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_CONTENT_TEXT);
 							len = strlen(PAGE_BODY);
-							memcpy(&conf[4], &((uint8_t*)buf)[21+14], 7+12*3);// ?code=xxxxxxxx&node=
+							memcpy(&conf[4], &((uint8_t*)buf)[21+14], 7+12*3+5);// ?code=xxxxxxxx&node=
 							write_conf();
 							len = add_conf_data(len);
 						}else {
@@ -299,11 +311,11 @@ static void http_server_serve(struct netconn *conn)
 						netconn_write(conn, file.data, file.len, NETCONN_COPY);
 						fs_close(&file);
 					}else if(strncmp((char const *)buf,"GET /password_update.html?old_password=",39)==0) {
-						if(buf[39]==conf[47] && buf[40]==conf[48] && buf[41]==conf[49] && buf[42]==conf[50]) {
-							conf[47] = buf[39+18];
-							conf[48] = buf[40+18];
-							conf[49] = buf[41+18];
-							conf[50] = buf[42+18];
+						if(buf[39]==conf[52] && buf[40]==conf[53] && buf[41]==conf[54] && buf[42]==conf[55]) {
+							conf[52] = buf[39+18];
+							conf[53] = buf[40+18];
+							conf[54] = buf[41+18];
+							conf[55] = buf[42+18];
 							write_conf();
 							sprintf(PAGE_BODY,"%s%s%s",PAGE_HEADER_200_OK,PAGE_HEADER_SERVER,PAGE_HEADER_DYN_CONTENT_TEXT);
 							len = strlen(PAGE_BODY);
@@ -315,20 +327,25 @@ static void http_server_serve(struct netconn *conn)
 							netconn_write(conn, file.data, file.len, NETCONN_COPY);
 							fs_close(&file);
 						}
-					}
-					else
+					}else if(strncmp((char const *)&buf[0],"GET /style.css",14)==0) {
+						fs_open(&file, "/style.css");
+						netconn_write(conn, file.data, file.len, NETCONN_COPY);
+						fs_close(&file);
+					}else if(strncmp((char const *)&buf[0],"GET /script.js",14)==0) {
+						fs_open(&file, "/script.js");
+						netconn_write(conn, file.data, file.len, NETCONN_COPY);
+						fs_close(&file);
+					}else
 					{
 						fs_open(&file, "/404.html");
 						netconn_write(conn, file.data, file.len, NETCONN_COPY);
 						fs_close(&file);
 					}
 				}
-			//}while (netbuf_next(inbuf) >= 0);
+			}while (netbuf_next(inbuf) >= 0);
 			//osDelay(10);
 		}
 	}
-
-	//HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin,GPIO_PIN_RESET);
 	netconn_close(conn);
 	netbuf_delete(inbuf);
 }

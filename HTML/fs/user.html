@@ -239,7 +239,7 @@
 		var answer = rxhr.response;
 		if(answer.length==8) {
 			var pageName = "http://"+self.location.hostname + "/page" + rxhr.response  + ".html";
-			location.replace(pageName);
+			location.href=pageName;
 		}else {
 			alert("неверное имя пользователя или пароль");
 		}

@@ -50,6 +50,7 @@ extern uint8_t eth_ip_state;
 extern uint16_t eth_ip_tmr;
 
 extern uint8_t conf[64];
+static uint16_t cn = 0;
 
 static uint16_t node_tmr[7] = {0,0,0,0,0,0,0};
 
@@ -105,6 +106,8 @@ extern RTC_HandleTypeDef hrtc;
 RTC_TimeTypeDef time;
 RTC_DateTypeDef date;
 
+extern uint16_t read_id_from_conf();
+
 
 uint8_t can_pos = 0;
 
@@ -117,7 +120,10 @@ static void add_can_request(can_req *req) {
 static uint8_t hex_table[]={'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
 
 static unsigned char crc_buf[64];
+
+#ifdef DEBUG_MODE
 static uint8_t debug_num = 0;
+#endif
 
 static void print_hex(uint8_t *buf, uint8_t value) {
 	buf[0] = '0';
@@ -261,10 +267,12 @@ static void info_net_work(uint16_t *tmr) {
 		TxHeader.TransmitGlobalTime = DISABLE;
 		TxData[0] = 0x1F;
 		TxData[1] = 0x0d;
-		if(eth_ip_state==0x00) TxData[2] = 0x02;
-		else if(eth_ip_state==0x01) TxData[1] = 0x04;
-		else if(eth_ip_state==0x02) TxData[1] = 0x01;
-		else TxData[2] = 0x02;
+		//TxData[2] = 0x01;
+		if(eth_ip_state==0x01) TxData[2] = 0x01;else TxData[2]=0x04;
+		/*if(eth_ip_state==0x00) TxData[2] = 0x02;
+		else if(eth_ip_state==0x01) TxData[2] = 0x04;
+		else if(eth_ip_state==0x02) TxData[2] = 0x01;
+		else TxData[2] = 0x02;*/
 		HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
 	}else if((*tmr)==VIEW_TIME+50) {	// COMMUNICATION STATUS
 		TxHeader.StdId = 0x400 | 0x3F;
@@ -327,8 +335,9 @@ static void telemetry_work(uint16_t *tmr) {
 					TxHeader.TransmitGlobalTime = DISABLE;
 					TxData[0] = 0x1F;
 					TxData[1] = 0x03;
-					TxData[2] = 0x8F;
-					TxData[3] = 0x13;
+
+					TxData[2] = cn&0xFF;//0x31;//0x8F;
+					TxData[3] = (cn>>8)&0xFF;//0x75;//0x13;
 					HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
 					node_num=0;
 					req_num = 0;
@@ -543,6 +552,8 @@ void canViewerTask(void const * argument) {
 	HAL_GPIO_WritePin(LED2_GPIO_Port,LED2_Pin,GPIO_PIN_SET);
 	osDelay(1000);
 	log = getFirstLog();
+
+	cn = read_id_from_conf();
 
 	for(;;)
 	{

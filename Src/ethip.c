@@ -168,13 +168,13 @@ uint8_t answer_time[4] = {0,0,0,0};
 uint8_t ob_99_upd = 0;
 uint8_t ob_9a_upd = 0;
 uint8_t ob_time_upd = 0;
-uint8_t eth_ip_state = 0;
+uint8_t eth_ip_state = 2;
 uint16_t eth_ip_tmr = 0;
 
 static uint32_t get_new_session_handle(void) {
 	static uint32_t session_handle = 0x20021300 - 1;
 	session_handle++;
-	eth_ip_state = 1;
+	//eth_ip_state = 0;
 	return session_handle;
 }
 
@@ -475,7 +475,7 @@ static uint16_t get_attribute_single(uint8_t* out,uint8_t class_num, uint8_t imp
 	if(class_num==0x9A && impl_num==0x01 && attr_num==0x01) return class0x9a_get_attribute_single(out);
 	if(class_num==0x9B && impl_num==0x01 && attr_num==0x01) return class0x9b_get_attribute_single(out);
 	if(class_num==0x9C && impl_num==0x01 && attr_num==0x01) {
-		eth_ip_state = 2;
+		eth_ip_state = 1;
 		eth_ip_tmr = 0;
 		return class0x9c_get_attribute_single(out);
 	}
