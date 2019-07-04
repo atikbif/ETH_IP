@@ -648,6 +648,13 @@ void canViewerTask(void const * argument) {
 			TxData[4] = answer_time[2];
 			TxData[5] = answer_time[3];
 			HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
+
+			extTime = answer_time[3];
+			extTime<<=8;extTime|=answer_time[2];
+			extTime<<=8;extTime|=answer_time[1];
+			extTime<<=8;extTime|=answer_time[0];
+			updateCurrentTime(extTime);
+
 		}
 		if(ob_99_upd) {
 			ob_99_upd = 0;
@@ -856,7 +863,7 @@ void canViewerTask(void const * argument) {
 						pos++;
 						//answer_90[pos] = RxData[3];
 						if(pos<sizeof(answer_90)) {
-							if(RxData[3]==0x01)
+							/*if(RxData[3]==0x01)
 							{
 								if(word_value<=200) {
 									answer_90[pos] = 0xFD;
@@ -879,7 +886,7 @@ void canViewerTask(void const * argument) {
 								}else if(word_value>=176*20.5) {
 									answer_90[pos] = 0xF7;
 								}else answer_90[pos] = 0xFF;
-							}else {
+							}else */{
 								if(RxData[4]) answer_90[pos] = 0xFD;
 								else answer_90[pos] = 0xFF;
 							}
