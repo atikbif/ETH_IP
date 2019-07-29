@@ -501,4 +501,4 @@ void sys_arch_unprotect(sys_prot_t pval)
   osMutexRelease(lwip_sys_mutex);
 }
 
-#endif /* !NO_SYS */
+#endif

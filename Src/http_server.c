@@ -18,6 +18,7 @@
 #include "canViewer.h"
 
 extern uint8_t conf[64];
+extern uint16_t reset_tmr;
 
 extern void read_conf();
 extern void write_conf();
@@ -83,11 +84,11 @@ static const unsigned char PAGE_HEADER_DYN_CONTENT_TEXT[] = {
 };
 
 static const unsigned char PAGE_HEADER_CAN_CONTENT_TEXT[] = {
-  //"Content-length: 5018"
+  //"Content-length: 1018"
   // Connection: Close
   //"Content-type: text/plain"
   0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x4C,0x65,0x6E,0x67,0x74,0x68,0x3a,0x20,
-  0x35,0x30,0x31,0x38,0x0d,0x0a,
+  0x31,0x30,0x31,0x38,0x0d,0x0a,
   0x43,0x6f,0x6e,0x6e,0x65,0x63,0x74,0x69,0x6f,0x6e,0x3a,0x20,0x43,0x6c,0x6f,0x73,
   0x65,0x0d,0x0a,
   0x43,0x6f,0x6e,0x74,0x65,0x6e,0x74,0x2d,0x74,0x79,0x70,0x65,0x3a,0x20,0x74,0x65,
@@ -119,7 +120,7 @@ extern RTC_HandleTypeDef hrtc;
 
 uint8_t dynamic_page[8];
 
-#define HTTPSERVER_THREAD_PRIO  ( tskIDLE_PRIORITY + 3 )
+#define HTTPSERVER_THREAD_PRIO  ( tskIDLE_PRIORITY + 2 )
 
 extern void clear_can_msg(void);
 extern void update_can_msg();
@@ -148,7 +149,7 @@ uint16_t add_can_data(uint16_t offset) {
 	PAGE_BODY[offset+5] = (((cn>>8)&0xFF)%100)/10 + '0';
 	PAGE_BODY[offset+6] = (cn>>8)%10 + '0';
 	PAGE_BODY[offset+7] = ' ';*/
-	return offset+5000;
+	return offset+100*CAN_REQ_CNT;
 }
 
 uint16_t add_dyn_data(uint16_t offset) {
@@ -196,6 +197,7 @@ static void http_server_serve(struct netconn *conn)
 				netbuf_data(inbuf, (void**)&buf, &buflen);
 				if ((buflen >=5) && (strncmp(buf, "GET /", 5) == 0))
 				{
+					reset_tmr = 0;
 					if (strncmp((char const *)buf,"GET / ",6)==0)
 					{
 						//update_dynamic_page();

@@ -15,7 +15,7 @@
 #include <string.h>
 #include "datetime.h"
 
-#define UDP_SERVER_PORT    7
+#define UDP_SERVER_PORT    12144
 #define INCORRECT_PAGE_NUM	1
 #define READ_ERROR		2
 #define PAGE_BUSY		3
@@ -41,6 +41,8 @@ static unsigned short int_page_num = 0;
 static unsigned short reqID = 0;
 extern unsigned short busy_cnt;
 
+extern uint16_t reset_tmr;
+
 volatile uint8_t *UniqueID = (uint8_t *)0x1FFF7A10;
 
 static RTC_TimeTypeDef sTime;
@@ -52,7 +54,7 @@ extern uint8_t read_ip_from_conf(uint8_t num);
 extern uint8_t read_mask_from_conf(uint8_t num);
 extern uint8_t read_gate_from_conf(uint8_t num);
 
-unsigned short udp_tmr = 0;
+//unsigned short udp_tmr = 0;
 
 static void udp_server_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p, const ip_addr_t *addr, u16_t port);
 static void inline send_udp_data(struct udp_pcb *upcb,const ip_addr_t *addr,u16_t port,u16_t length);
@@ -97,7 +99,8 @@ void udp_server_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p
 
 	if(crc==0)
 	{
-	  udp_tmr = 0;
+	  reset_tmr = 0;
+	  //udp_tmr = 0;
 	  reqID = (unsigned short)data[0]<<8;
 	  reqID |= data[1];
 	  switch(data[2]){

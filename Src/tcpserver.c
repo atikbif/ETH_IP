@@ -40,7 +40,9 @@
 
 #include "ethip.h"
 
-#define TCPSERVER_THREAD_PRIO  ( tskIDLE_PRIORITY + 4 )
+#define TCPSERVER_THREAD_PRIO  ( tskIDLE_PRIORITY + 2 )
+
+extern uint16_t reset_tmr;
 
 
 
@@ -94,6 +96,7 @@ static void tcp_server_thread(void *arg)
               inp_data_pckt.length = len;
               get_encaps_packet(&inp_data_pckt,&enc_pckt,&bool_result);
               if(bool_result) {
+            	  reset_tmr = 0;
             	  out_data_pckt.data = &out_buf[0];
             	  out_data_pckt.length = 0;
             	  get_answer(&enc_pckt, &out_data_pckt);
