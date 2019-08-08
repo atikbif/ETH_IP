@@ -26,7 +26,6 @@
 #endif /* MDK ARM Compiler */
 
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 /* Private function prototypes -----------------------------------------------*/
 /* ETH Variables initialization ----------------------------------------------*/
@@ -69,6 +68,7 @@ GATEWAY_ADDRESS[3] = read_gate_from_conf(4);*/
 /**
   * LwIP initialization function
   */
+
 void MX_LWIP_Init(void)
 {
   /* IP addresses initialization */

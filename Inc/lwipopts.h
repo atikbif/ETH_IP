@@ -31,11 +31,40 @@
 /* Within 'USER CODE' section, code will be kept by default at each generation */
 /* USER CODE BEGIN 0 */
 
-#define PBUF_POOL_SIZE                  64
+#define PBUF_POOL_SIZE                  40
+
+#define TCP_MSL 2000UL
+#define LWIP_SOCKET                     0
+#define TCP_MAXRTX                      4
+#define TCP_SYNMAXRTX                   4
+
+
+#define LWIP_TCPIP_CORE_LOCKING    1
+#define LWIP_FREERTOS_CHECK_CORE_LOCKING	1
+
+#if !NO_SYS
+void sys_check_core_locking(void);
+#define LWIP_ASSERT_CORE_LOCKED()  sys_check_core_locking()
+void sys_mark_tcpip_thread(void);
+#define LWIP_MARK_TCPIP_THREAD()   sys_mark_tcpip_thread()
+
+#if LWIP_TCPIP_CORE_LOCKING
+void sys_lock_tcpip_core(void);
+#define LOCK_TCPIP_CORE()          sys_lock_tcpip_core()
+void sys_unlock_tcpip_core(void);
+#define UNLOCK_TCPIP_CORE()        sys_unlock_tcpip_core()
+#endif
+#endif
+
+//#define LWIP_SO_SNDTIMEO                1
+#define LWIP_TCP_CLOSE_TIMEOUT_MS_DEFAULT 2000
 
 //#define MEM_STATS						1
 //#define MEMP_STATS                    1
-#define TCP_QUEUE_OOSEQ  				0
+//#define TCP_QUEUE_OOSEQ  				0
+//#define PBUF_POOL_FREE_OOSEQ 0
+
+//#define LWIP_DEBUG
 
 /* USER CODE END 0 */
 
@@ -54,15 +83,15 @@
 /* LwIP Stack Parameters (modified compared to initialization value in opt.h) -*/
 /* Parameters set in STM32CubeMX LwIP Configuration GUI -*/
 /*----- Default Value for MEMP_NUM_TCP_PCB: 5 ---*/
-#define MEMP_NUM_TCP_PCB 10
+#define MEMP_NUM_TCP_PCB 32
 /*----- Value in opt.h for MEM_ALIGNMENT: 1 -----*/
 #define MEM_ALIGNMENT 4
 /*----- Default Value for MEM_SIZE: 1600 ---*/
 #define MEM_SIZE 8192
 /*----- Default Value for MEMP_NUM_NETBUF: 2 ---*/
-#define MEMP_NUM_NETBUF 16
+#define MEMP_NUM_NETBUF 32
 /*----- Default Value for MEMP_NUM_NETCONN: 4 ---*/
-#define MEMP_NUM_NETCONN 16
+#define MEMP_NUM_NETCONN 32
 /*----- Default Value for PBUF_POOL_BUFSIZE: 592 ---*/
 #define PBUF_POOL_BUFSIZE 512
 /*----- Value in opt.h for LWIP_ETHERNET: LWIP_ARP || PPPOE_SUPPORT -*/
@@ -70,9 +99,9 @@
 /*----- Value in opt.h for LWIP_DNS_SECURE: (LWIP_DNS_SECURE_RAND_XID | LWIP_DNS_SECURE_NO_MULTIPLE_OUTSTANDING | LWIP_DNS_SECURE_RAND_SRC_PORT) -*/
 #define LWIP_DNS_SECURE 7
 /*----- Default Value for TCP_MSS: 536 ---*/
-#define TCP_MSS 1460
+#define TCP_MSS 536
 /*----- Value in opt.h for TCP_SND_QUEUELEN: (4*TCP_SND_BUF + (TCP_MSS - 1))/TCP_MSS -----*/
-#define TCP_SND_QUEUELEN 15
+#define TCP_SND_QUEUELEN 16
 /*----- Value in opt.h for TCP_SNDQUEUELOWAT: LWIP_MAX(TCP_SND_QUEUELEN)/2, 5) -*/
 #define TCP_SNDQUEUELOWAT 5
 /*----- Value in opt.h for TCPIP_THREAD_STACKSIZE: 0 -----*/
@@ -106,7 +135,7 @@
 /*----- Default Value for HTTPD_POLL_INTERVAL: 4 ---*/
 #define HTTPD_POLL_INTERVAL 4
 /*----- Value in opt.h for LWIP_STATS: 1 -----*/
-#define LWIP_STATS 0
+#define LWIP_STATS 1
 /*----- Value in opt.h for CHECKSUM_GEN_IP: 1 -----*/
 #define CHECKSUM_GEN_IP 0
 /*----- Value in opt.h for CHECKSUM_GEN_UDP: 1 -----*/

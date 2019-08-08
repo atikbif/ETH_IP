@@ -39,8 +39,9 @@
 #include "lwip/api.h"
 
 #include "ethip.h"
+#include "cmsis_os.h"
 
-#define TCPSERVER_THREAD_PRIO  ( tskIDLE_PRIORITY + 2 )
+#define TCPSERVER_THREAD_PRIO  2
 
 extern uint16_t reset_tmr;
 
@@ -80,6 +81,7 @@ static void tcp_server_thread(void *arg)
       while (1) 
       {
         /* Grab new connection. */
+    	 netconn_set_recvtimeout(conn,3000);
          accept_err = netconn_accept(conn, &newconn);
     
         /* Process the new connection. */
@@ -127,11 +129,8 @@ static void tcp_server_thread(void *arg)
         }else {
 
         }
+        osDelay(1);
       }
-    }
-    else
-    {
-      netconn_delete(newconn);
     }
   }
 }

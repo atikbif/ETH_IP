@@ -8,13 +8,14 @@ var dyn_code = "";
 	}else dyn_code="error";
 	xhr = new(XMLHttpRequest);
 	read_data();
-	setInterval(function(){ read_can();},5000);
+	setInterval(function(){ read_can();},3000);
 	
   }
   function read_can(){
 	if(document.getElementById("tab_3").checked) {
 		var rxhr;
 		rxhr = new(XMLHttpRequest);
+		rxhr.timeout = 2000;
 		rxhr.open("GET", "can.html?code="+dyn_code+"&r=" + Math.random(), true); 
 		rxhr.responseType = "text";
 		rxhr.onload = function (oEvent) {
@@ -36,6 +37,7 @@ var dyn_code = "";
   function read_data(){
 	var rxhr;
 	rxhr = new(XMLHttpRequest);
+	rxhr.timeout = 2000;
 	rxhr.open("GET", "read.html?code="+dyn_code+"&r=" + Math.random(), true); 
 	rxhr.responseType = "text";
 	rxhr.onload = function (oEvent) {

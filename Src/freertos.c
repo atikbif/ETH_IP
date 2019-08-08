@@ -64,6 +64,9 @@
 #include "udp_server.h"
 #include "datetime.h"
 
+#include <stdio.h>
+#include "stats.h"
+//#include "tcpbase.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -96,6 +99,8 @@ extern IWDG_HandleTypeDef hiwdg;
 osThreadId canViewerTaskHandle;
 osThreadId canLoggerTaskHandle;
 osThreadId datetimeTaskHandle;
+
+//extern struct stats_ lwip_stats;
 
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
@@ -196,6 +201,7 @@ void StartDefaultTask(void const * argument)
   uint16_t led2_period = 30;
   uint16_t led1_cnt = 0;
   uint16_t led2_cnt = 0;
+  //static uint16_t i = 0;
 
   tcp_server_init();
   http_server_init();
@@ -204,6 +210,12 @@ void StartDefaultTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+	  /*i++;
+	  if(i>=5) {
+		  i = 0;
+		  ITM_SendChar( lwip_stats.memp[1]->used + '0' );
+	  }*/
+
 	  if(HAL_GPIO_ReadPin(KEY_GPIO_Port,KEY_Pin)==GPIO_PIN_RESET) key_tmr++;else key_tmr = 0;
 	  if(key_tmr>=10*3) {
 		  set_default_conf();
@@ -220,7 +232,7 @@ void StartDefaultTask(void const * argument)
 	  led2_cnt++;if(led2_cnt>=led2_period) led2_cnt=0;
 	  can_tmr++;
 	  reset_tmr++;
-	  if(reset_tmr>=600*5) {reset_tmr=0;reset_flag=1;}
+	  if(reset_tmr>=600*10) {reset_tmr=0;reset_flag=1;}
 	  if(reset_flag==0)
 		  HAL_IWDG_Refresh(&hiwdg);
   }

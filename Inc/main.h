@@ -99,7 +99,7 @@ void Error_Handler(void);
 #define KEY_GPIO_Port GPIOC
 /* USER CODE BEGIN Private defines */
 
-//#define DEBUG_MODE
+#define DEBUG_MODE		0
 
 /* USER CODE END Private defines */
 

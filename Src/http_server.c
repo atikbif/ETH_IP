@@ -16,6 +16,8 @@
 #include "lwip/apps/fs.h"
 #include <string.h>
 #include "canViewer.h"
+#include "tcp.h"
+#include "api_msg.h"
 
 extern uint8_t conf[64];
 extern uint16_t reset_tmr;
@@ -184,7 +186,6 @@ static void http_server_serve(struct netconn *conn)
 
 	//HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin,GPIO_PIN_SET);
 
-
 	netconn_set_recvtimeout(conn,1000);
 	recv_err = netconn_recv(conn, &inbuf);
 
@@ -348,6 +349,7 @@ static void http_server_serve(struct netconn *conn)
 			//osDelay(10);
 		}
 	}
+	//tcp_abort(conn->pcb.tcp);
 	netconn_close(conn);
 	netbuf_delete(inbuf);
 }
@@ -375,6 +377,7 @@ static void http_server_thread(void *arg)
 	      while(1)
 	      {
 	        /* accept any icoming connection */
+	    	netconn_set_recvtimeout(conn,3000);
 	        accept_err = netconn_accept(conn, &newconn);
 	        if(accept_err == ERR_OK)
 	        {
@@ -382,9 +385,11 @@ static void http_server_thread(void *arg)
 	            http_server_serve(newconn);
 
 	            /* delete connection */
+	            //netconn_free(newconn);
 	            netconn_delete(newconn);
 	            //if(thr_cnt) thr_cnt--;
 	        }
+	        osDelay(1);
 	      }
 	    }
 	  }

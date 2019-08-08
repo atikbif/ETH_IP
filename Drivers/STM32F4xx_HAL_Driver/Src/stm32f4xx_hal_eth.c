@@ -2008,7 +2008,7 @@ static void ETH_MACDMAConfig(ETH_HandleTypeDef *heth, uint32_t err)
     dmainit.TransmitThresholdControl = ETH_TRANSMITTHRESHOLDCONTROL_64BYTES;
     dmainit.ForwardErrorFrames = ETH_FORWARDERRORFRAMES_DISABLE;
     dmainit.ForwardUndersizedGoodFrames = ETH_FORWARDUNDERSIZEDGOODFRAMES_DISABLE;
-    dmainit.ReceiveThresholdControl = ETH_RECEIVEDTHRESHOLDCONTROL_64BYTES;
+    dmainit.ReceiveThresholdControl = ETH_RECEIVEDTHRESHOLDCONTROL_32BYTES;
     dmainit.SecondFrameOperate = ETH_SECONDFRAMEOPERARTE_ENABLE;
     dmainit.AddressAlignedBeats = ETH_ADDRESSALIGNEDBEATS_ENABLE;
     dmainit.FixedBurst = ETH_FIXEDBURST_ENABLE;

@@ -33,7 +33,6 @@
 
 extern uint8_t read_ip_from_conf(uint8_t num);
 
-
 /* USER CODE END 0 */
 
 /* Private define ------------------------------------------------------------*/
@@ -231,9 +230,9 @@ static void low_level_init(struct netif *netif)
    uint8_t MACAddr[6] ;
   heth.Instance = ETH;
   heth.Init.AutoNegotiation = ETH_AUTONEGOTIATION_DISABLE;
-  heth.Init.Speed = ETH_SPEED_10M;
+  heth.Init.Speed = ETH_SPEED_100M;
   heth.Init.DuplexMode = ETH_MODE_FULLDUPLEX;
-  heth.Init.PhyAddress = PHY_USER_NAME_PHY_ADDRESS;
+  heth.Init.PhyAddress = 0;//PHY_USER_NAME_PHY_ADDRESS;
   MACAddr[0] = 0x00;
   MACAddr[1] = 0x80;
   MACAddr[2] = 0xE1;
@@ -469,7 +468,7 @@ static struct pbuf * low_level_input(struct netif *netif)
       memcpy( (uint8_t*)((uint8_t*)q->payload + payloadoffset), (uint8_t*)((uint8_t*)buffer + bufferoffset), byteslefttocopy);
       bufferoffset = bufferoffset + byteslefttocopy;
     }
-  }  
+  }
   
     /* Release descriptors to DMA */
     /* Point to first descriptor */
@@ -608,10 +607,10 @@ err_t ethernetif_init(struct netif *netif)
 * @param  None
 * @retval Time
 */
-u32_t sys_jiffies(void)
-{
-  return HAL_GetTick();
-}
+//u32_t sys_jiffies(void)
+//{
+//  return HAL_GetTick();
+//}
 
 /**
 * @brief  Returns the current time in milliseconds
@@ -619,10 +618,10 @@ u32_t sys_jiffies(void)
 * @param  None
 * @retval Time
 */
-u32_t sys_now(void)
-{
-  return HAL_GetTick();
-}
+//u32_t sys_now(void)
+//{
+//  return HAL_GetTick();
+//}
 
 /* USER CODE END 6 */
 

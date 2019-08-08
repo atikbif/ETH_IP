@@ -287,6 +287,7 @@ int main(void)
 
   HAL_NAND_Read_ID(&hnand1, &NAND_ID);
 
+
 #ifdef FLASH_TEST
 
    uint16_t err = 0;

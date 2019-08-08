@@ -14,6 +14,7 @@
 #include "datetime.h"
 #include "crc.h"
 #include "canLogger.h"
+#include "stats.h"
 
 #define VIEW_TIME	3000
 #define UPD_TIME	10000
@@ -27,6 +28,7 @@ static uint32_t              TxMailbox=0;
 static uint8_t               TxData[8];
 uint16_t can_tmr=0;
 
+extern struct stats_ lwip_stats;
 extern uint8_t answer_90[246];
 extern uint8_t answer_91[28];
 extern uint8_t answer_92[14];
@@ -66,7 +68,7 @@ uint16_t debug_cnt = 0;
 #define CAN_TEST_LENGTH	9
 
 
-#ifdef DEBUG_MODE
+#if DEBUG_MODE
 static uint8_t can_test_data[CAN_TEST_LENGTH][11] = {
 		{0x04,0x07,0x08,0x0F,0x1C,0x64,0xBC,0x00,0x00,0x00,0x00},	// 2 bytes - id, 1 byte - data length, 8 bytes - data
 		{0x04,0x07,0x08,0x0F,0x1E,0xC8,0x78,0x00,0x00,0x00,0x00},
@@ -103,7 +105,7 @@ uint8_t can_req_msg[CAN_REQ_CNT][100];
 
 extern RTC_HandleTypeDef hrtc;
 
-RTC_TimeTypeDef time;
+RTC_TimeTypeDef can_time;
 RTC_DateTypeDef date;
 
 extern uint16_t read_id_from_conf();
@@ -121,7 +123,7 @@ static uint8_t hex_table[]={'0','1','2','3','4','5','6','7','8','9','A','B','C',
 
 static unsigned char crc_buf[64];
 
-#ifdef DEBUG_MODE
+#if DEBUG_MODE
 static uint8_t debug_num = 0;
 #endif
 
@@ -149,7 +151,7 @@ static void print_time(uint8_t *buf, can_req *req) {
 }
 
 uint8_t print_plc_time(uint8_t *buf) {
-	HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+	HAL_RTC_GetTime(&hrtc, &can_time, RTC_FORMAT_BIN);
 	HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
 	print_dec(&buf[0],date.Date);
 	buf[2] = '/';
@@ -157,11 +159,11 @@ uint8_t print_plc_time(uint8_t *buf) {
 	buf[5] = '/';
 	print_dec(&buf[6],date.Year);
 	buf[8] = ' ';
-	print_dec(&buf[9],time.Hours);
+	print_dec(&buf[9],can_time.Hours);
 	buf[11]=':';
-	print_dec(&buf[12],time.Minutes);
+	print_dec(&buf[12],can_time.Minutes);
 	buf[14]=':';
-	print_dec(&buf[15],time.Seconds);
+	print_dec(&buf[15],can_time.Seconds);
 	buf[17]=' ';
 	return 18;
 }
@@ -238,6 +240,19 @@ void update_can_msg() {
 		}
 		if(pos) pos--;else pos = CAN_REQ_CNT - 1;
 	}
+	for(j=0;j<99;j++) {
+		can_req_msg[0][j]=' ';can_req_msg[0][99] = 0x0d;
+		can_req_msg[1][j]=' ';can_req_msg[1][99] = 0x0d;
+	}
+	can_req_msg[0][0]='c';can_req_msg[0][1]='o';can_req_msg[0][2]='n';can_req_msg[0][3]='n';can_req_msg[0][4]='e';
+	can_req_msg[0][5]='c';can_req_msg[0][6]='t';can_req_msg[0][7]='i';can_req_msg[0][8]='o';can_req_msg[0][9]='n';
+	can_req_msg[0][10]='s';can_req_msg[0][11]=':';can_req_msg[0][12]=' ';can_req_msg[0][13]=' ';can_req_msg[0][14]=' ';
+	can_req_msg[0][15]=',';can_req_msg[0][16]=' ';can_req_msg[0][17]=' ';
+	can_req_msg[1][0]='b';can_req_msg[1][1]='u';can_req_msg[1][2]='f';can_req_msg[1][3]='s';can_req_msg[1][4]=':';
+	can_req_msg[1][5]=' ';can_req_msg[1][6]=' ';can_req_msg[1][7]=' ';can_req_msg[1][8]=',';can_req_msg[1][9]=' ';
+	can_req_msg[1][10]=' ';
+	print_dec(&can_req_msg[0][13], lwip_stats.memp[1]->used);print_dec(&can_req_msg[0][16], lwip_stats.memp[1]->max);
+	print_dec(&can_req_msg[1][6], lwip_stats.memp[12]->used);print_dec(&can_req_msg[1][9], lwip_stats.memp[12]->max);
 }
 
 
@@ -557,10 +572,10 @@ void canViewerTask(void const * argument) {
 
 	for(;;)
 	{
-#ifdef DEBUG_MODE
+#if DEBUG_MODE
 		debug_cnt++;
 		if(debug_cnt>=1){
-			HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+			HAL_RTC_GetTime(&hrtc, &can_time, RTC_FORMAT_BIN);
 			HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
 			if(get_free_buf_space(1+2+4+1+can_test_data[debug_num][2]+1)) {
 				writeByteToBuffer(0x31);
@@ -579,9 +594,9 @@ void canViewerTask(void const * argument) {
 				}
 				writeByteToBuffer(GetCRC8(crc_buf,7+i));
 
-				cr.sec = time.Seconds;
-				cr.min = time.Minutes;
-				cr.houre = time.Hours;
+				cr.sec = can_time.Seconds;
+				cr.min = can_time.Minutes;
+				cr.houre = can_time.Hours;
 				cr.eoid = can_test_data[debug_num][3] & 0x1F;
 				cr.ss = can_test_data[debug_num][3] >> 5;
 				//uint32_t rv = crc_buf[6];
@@ -739,11 +754,11 @@ void canViewerTask(void const * argument) {
 
 				cr.service = RxHeader.StdId & 0x07;
 				cr.addr = (RxHeader.StdId>>3) & 0x0F;
-				HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+				HAL_RTC_GetTime(&hrtc, &can_time, RTC_FORMAT_BIN);
 				HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
-				cr.sec = time.Seconds;
-				cr.min = time.Minutes;
-				cr.houre = time.Hours;
+				cr.sec = can_time.Seconds;
+				cr.min = can_time.Minutes;
+				cr.houre = can_time.Hours;
 				cr.ss = (RxData[0] >> 5) & 0x07;
 				cr.eoid = eoid;
 				cr.intern_addr = intern_addr;
