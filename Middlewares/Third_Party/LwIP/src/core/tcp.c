@@ -1269,7 +1269,8 @@ tcp_slowtmr_start:
       } else {
         /* Increase the retransmission timer if it is running */
         if ((pcb->rtime >= 0) && (pcb->rtime < 0x7FFF)) {
-          ++pcb->rtime;
+          //++pcb->rtime;
+        	pcb->rtime+=10;
         }
 
         if (pcb->rtime >= pcb->rto) {

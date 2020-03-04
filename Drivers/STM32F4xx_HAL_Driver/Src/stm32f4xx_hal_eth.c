@@ -1864,7 +1864,7 @@ static void ETH_MACDMAConfig(ETH_HandleTypeDef *heth, uint32_t err)
   {
     macinit.ChecksumOffload = ETH_CHECKSUMOFFLAOD_DISABLE;
   }
-  macinit.RetryTransmission = ETH_RETRYTRANSMISSION_DISABLE;
+  macinit.RetryTransmission = ETH_RETRYTRANSMISSION_ENABLE;//ETH_RETRYTRANSMISSION_DISABLE;
   macinit.AutomaticPadCRCStrip = ETH_AUTOMATICPADCRCSTRIP_DISABLE;
   macinit.BackOffLimit = ETH_BACKOFFLIMIT_10;
   macinit.DeferralCheck = ETH_DEFFERRALCHECK_DISABLE;

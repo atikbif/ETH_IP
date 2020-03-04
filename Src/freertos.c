@@ -229,6 +229,8 @@ void StartDefaultTask(void const * argument)
 		  led1_cnt++;if(led1_cnt>=led1_period) {led1_cnt=0;led1_start=0;}
 	  }
 	  if(led2_cnt==0) HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin,GPIO_PIN_SET);else HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin,GPIO_PIN_RESET);
+
+	  //HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
 	  led2_cnt++;if(led2_cnt>=led2_period) led2_cnt=0;
 	  can_tmr++;
 	  reset_tmr++;

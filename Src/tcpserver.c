@@ -45,23 +45,82 @@
 
 extern uint16_t reset_tmr;
 
+static void ethipserver_thread(void *arg)
+{
+	struct netconn   *newconn;
+    struct netbuf   *buf;
+    uint16_t   len;
+    uint8_t close_flag = 0;
+    static uint8_t out_buf[1024*3];
+    static uint8_t nums = 0x00;
+    uint8_t num=0;
+    newconn = (struct netconn*)arg;
+    void *data;
+    packet	inp_data_pckt;
+    packet out_data_pckt;
+    uint8_t bool_result = 0;
+    encaps_packet enc_pckt;
+    //uint8_t*   DataPtr;
 
+    if((nums&(1<<0))==0) num=1;
+    else if((nums&(1<<1))==0) num=2;
+    else if((nums&(1<<2))==0) num=3;
+    if(num==0 || num>3) {
+    	netconn_close(newconn);
+		netconn_delete(newconn);
+		vTaskDelete(NULL);
+    }
+    nums|=(1<<(num-1));
+
+    close_flag = 0;
+	netconn_set_recvtimeout(newconn,30000);
+	while (netconn_recv(newconn, &buf) == ERR_OK)
+	{
+			do
+			{
+			  netbuf_data(buf, &data, &len);
+			  inp_data_pckt.data = (uint8_t*)data;
+			  inp_data_pckt.length = len;
+			  get_encaps_packet(&inp_data_pckt,&enc_pckt,&bool_result);
+			  if(bool_result) {
+				  reset_tmr = 0;
+				  out_data_pckt.data = &out_buf[1024*(num-1)];
+				  out_data_pckt.length = 0;
+				  get_answer(&enc_pckt, &out_data_pckt);
+				  close_flag = out_data_pckt.close_tcp;
+				  if(out_data_pckt.length){
+					netconn_write(newconn, out_data_pckt.data, out_data_pckt.length, NETCONN_NOCOPY);
+				  }
+			  }
+			}
+			while (netbuf_next(buf) >= 0);
+		netbuf_delete(buf);
+		if(close_flag) break;
+	}
+
+	/* Close connection and discard connection identifier. */
+	nums &= ~((uint8_t)(1<<(num-1)));
+	netconn_close(newconn);
+	netconn_delete(newconn);
+	vTaskDelete(NULL);
+
+}
 
 /*-----------------------------------------------------------------------------------*/
 static void tcp_server_thread(void *arg)
 {
   struct netconn *conn, *newconn;
   err_t err, accept_err;
-  struct netbuf *buf;
-  void *data;
-  u16_t len;
+  //struct netbuf *buf;
+  //void *data;
+  //u16_t len;
 
-  uint8_t bool_result = 0;
-  static encaps_packet enc_pckt;
-  static packet	inp_data_pckt;
-  static packet out_data_pckt;
-  static uint8_t out_buf[1024];
-  static uint8_t close_flag = 0;
+  //uint8_t bool_result = 0;
+  //static encaps_packet enc_pckt;
+  //static packet	inp_data_pckt;
+  //static packet out_data_pckt;
+  //static uint8_t out_buf[1024];
+  //static uint8_t close_flag = 0;
       
   LWIP_UNUSED_ARG(arg);
 
@@ -87,45 +146,7 @@ static void tcp_server_thread(void *arg)
         /* Process the new connection. */
         if (accept_err == ERR_OK) 
         {
-          close_flag = 0;
-          netconn_set_recvtimeout(newconn,10000);
-          while (netconn_recv(newconn, &buf) == ERR_OK) 
-          {
-            do 
-            {
-              netbuf_data(buf, &data, &len);
-              inp_data_pckt.data = (uint8_t*)data;
-              inp_data_pckt.length = len;
-              get_encaps_packet(&inp_data_pckt,&enc_pckt,&bool_result);
-              if(bool_result) {
-            	  reset_tmr = 0;
-            	  out_data_pckt.data = &out_buf[0];
-            	  out_data_pckt.length = 0;
-            	  get_answer(&enc_pckt, &out_data_pckt);
-            	  close_flag = out_data_pckt.close_tcp;
-            	  if(out_data_pckt.length){
-            		  netconn_write(newconn, out_data_pckt.data, out_data_pckt.length, NETCONN_COPY);
-            	  }
-              }
-              //netconn_write(newconn, data, len, NETCONN_COPY);
-            } 
-            while (netbuf_next(buf) >= 0);
-          
-            netbuf_delete(buf);
-
-            // close other connections
-
-            /*if (netconn_accept(conn, &otherconn) == ERR_OK){
-            	netconn_close(otherconn);
-			    netconn_delete(otherconn);
-            }*/
-
-            if(close_flag) break;
-          }
-        
-          /* Close connection and discard connection identifier. */
-          netconn_close(newconn);
-          netconn_delete(newconn);
+        	sys_thread_new("ethipserver", ethipserver_thread, newconn, DEFAULT_THREAD_STACKSIZE, TCPSERVER_THREAD_PRIO);
         }else {
 
         }

@@ -230,9 +230,9 @@ static void low_level_init(struct netif *netif)
    uint8_t MACAddr[6] ;
   heth.Instance = ETH;
   heth.Init.AutoNegotiation = ETH_AUTONEGOTIATION_DISABLE;
-  heth.Init.Speed = ETH_SPEED_100M;
-  heth.Init.DuplexMode = ETH_MODE_FULLDUPLEX;
-  heth.Init.PhyAddress = 0;//PHY_USER_NAME_PHY_ADDRESS;
+  heth.Init.Speed = ETH_SPEED_10M;
+  heth.Init.DuplexMode = ETH_MODE_FULLDUPLEX;//ETH_MODE_FULLDUPLEX;//ETH_MODE_HALFDUPLEX;
+  heth.Init.PhyAddress = 1;//PHY_USER_NAME_PHY_ADDRESS;
   MACAddr[0] = 0x00;
   MACAddr[1] = 0x80;
   MACAddr[2] = 0xE1;
@@ -342,7 +342,6 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
   uint32_t payloadoffset = 0;
   DmaTxDesc = heth.TxDesc;
   bufferoffset = 0;
-  
   /* copy frame from pbufs to driver buffers */
   for(q = p; q != NULL; q = q->next)
     {
@@ -431,16 +430,17 @@ static struct pbuf * low_level_input(struct netif *netif)
   if (HAL_ETH_GetReceivedFrame_IT(&heth) != HAL_OK)
     return NULL;
   
+
   /* Obtain the size of the packet and put it into the "len" variable. */
   len = heth.RxFrameInfos.length;
   buffer = (uint8_t *)heth.RxFrameInfos.buffer;
-  
+
   if (len > 0)
   {
     /* We allocate a pbuf chain of pbufs from the Lwip buffer pool */
     p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
   }
-  
+
   if (p != NULL)
   {
     dmarxdesc = heth.RxFrameInfos.FSRxDesc;
@@ -449,17 +449,17 @@ static struct pbuf * low_level_input(struct netif *netif)
     {
       byteslefttocopy = q->len;
       payloadoffset = 0;
-      
+
       /* Check if the length of bytes to copy in current pbuf is bigger than Rx buffer size*/
       while( (byteslefttocopy + bufferoffset) > ETH_RX_BUF_SIZE )
       {
         /* Copy data to pbuf */
         memcpy( (uint8_t*)((uint8_t*)q->payload + payloadoffset), (uint8_t*)((uint8_t*)buffer + bufferoffset), (ETH_RX_BUF_SIZE - bufferoffset));
-        
+
         /* Point to next descriptor */
         dmarxdesc = (ETH_DMADescTypeDef *)(dmarxdesc->Buffer2NextDescAddr);
         buffer = (uint8_t *)(dmarxdesc->Buffer1Addr);
-        
+
         byteslefttocopy = byteslefttocopy - (ETH_RX_BUF_SIZE - bufferoffset);
         payloadoffset = payloadoffset + (ETH_RX_BUF_SIZE - bufferoffset);
         bufferoffset = 0;
@@ -469,22 +469,22 @@ static struct pbuf * low_level_input(struct netif *netif)
       bufferoffset = bufferoffset + byteslefttocopy;
     }
   }
-  
+
     /* Release descriptors to DMA */
     /* Point to first descriptor */
     dmarxdesc = heth.RxFrameInfos.FSRxDesc;
     /* Set Own bit in Rx descriptors: gives the buffers back to DMA */
     for (i=0; i< heth.RxFrameInfos.SegCount; i++)
-    {  
+    {
       dmarxdesc->Status |= ETH_DMARXDESC_OWN;
       dmarxdesc = (ETH_DMADescTypeDef *)(dmarxdesc->Buffer2NextDescAddr);
     }
-    
+
     /* Clear Segment_Count */
-    heth.RxFrameInfos.SegCount =0;  
-  
+    heth.RxFrameInfos.SegCount =0;
+
   /* When Rx Buffer unavailable flag is set: clear it and resume reception */
-  if ((heth.Instance->DMASR & ETH_DMASR_RBUS) != (uint32_t)RESET)  
+  if ((heth.Instance->DMASR & ETH_DMASR_RBUS) != (uint32_t)RESET)
   {
     /* Clear RBUS ETHERNET DMA flag */
     heth.Instance->DMASR = ETH_DMASR_RBUS;
@@ -503,7 +503,7 @@ static struct pbuf * low_level_input(struct netif *netif)
  *
  * @param netif the lwip network interface structure for this ethernetif
  */
-void ethernetif_input( void const * argument ) 
+void ethernetif_input( void const * argument )
 {
   struct pbuf *p;
   struct netif *netif = (struct netif *) argument;
@@ -513,7 +513,7 @@ void ethernetif_input( void const * argument )
     if (osSemaphoreWait( s_xSemaphore, TIME_WAITING_FOR_INPUT)==osOK)
     {
       do
-      {   
+      {
         p = low_level_input( netif );
         if   (p != NULL)
         {
@@ -535,18 +535,18 @@ void ethernetif_input( void const * argument )
  * @return ERR_OK if ...
  */
 static err_t low_level_output_arp_off(struct netif *netif, struct pbuf *q, const ip4_addr_t *ipaddr)
-{  
+{
   err_t errval;
   errval = ERR_OK;
-    
-/* USER CODE BEGIN 5 */ 
-    
-/* USER CODE END 5 */  
-    
+
+/* USER CODE BEGIN 5 */
+
+/* USER CODE END 5 */
+
   return errval;
-  
+
 }
-#endif /* LWIP_ARP */ 
+#endif /* LWIP_ARP */
 
 /**
  * Should be called at the beginning of the program to set up the
@@ -563,7 +563,7 @@ static err_t low_level_output_arp_off(struct netif *netif, struct pbuf *q, const
 err_t ethernetif_init(struct netif *netif)
 {
   LWIP_ASSERT("netif != NULL", (netif != NULL));
-  
+
 #if LWIP_NETIF_HOSTNAME
   /* Initialize interface hostname */
   netif->hostname = "lwip";
@@ -586,7 +586,7 @@ err_t ethernetif_init(struct netif *netif)
 #endif /* LWIP_ARP */
 #endif /* LWIP_ARP || LWIP_ETHERNET */
 #endif /* LWIP_IPV4 */
- 
+
 #if LWIP_IPV6
   netif->output_ip6 = ethip6_output;
 #endif /* LWIP_IPV6 */

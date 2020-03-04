@@ -35,7 +35,7 @@
 
 #define TCP_MSL 2000UL
 #define LWIP_SOCKET                     0
-#define TCP_MAXRTX                      4
+#define TCP_MAXRTX                      12
 #define TCP_SYNMAXRTX                   4
 
 
@@ -93,7 +93,7 @@ void sys_unlock_tcpip_core(void);
 /*----- Default Value for MEMP_NUM_NETCONN: 4 ---*/
 #define MEMP_NUM_NETCONN 32
 /*----- Default Value for PBUF_POOL_BUFSIZE: 592 ---*/
-#define PBUF_POOL_BUFSIZE 512
+#define PBUF_POOL_BUFSIZE 592
 /*----- Value in opt.h for LWIP_ETHERNET: LWIP_ARP || PPPOE_SUPPORT -*/
 #define LWIP_ETHERNET 1
 /*----- Value in opt.h for LWIP_DNS_SECURE: (LWIP_DNS_SECURE_RAND_XID | LWIP_DNS_SECURE_NO_MULTIPLE_OUTSTANDING | LWIP_DNS_SECURE_RAND_SRC_PORT) -*/
