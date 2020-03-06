@@ -14,6 +14,7 @@
 #include "stm32f4xx_hal.h"
 #include <string.h>
 #include "datetime.h"
+#include "eeprom.h"
 
 #define UDP_SERVER_PORT    12144
 #define INCORRECT_PAGE_NUM	1
@@ -48,6 +49,8 @@ volatile uint8_t *UniqueID = (uint8_t *)0x1FFF7A10;
 static RTC_TimeTypeDef sTime;
 static RTC_DateTypeDef sDate;
 static unsigned long curTime;
+
+extern uint16_t VirtAddVarTab[NB_OF_VAR];
 
 
 extern uint8_t read_ip_from_conf(uint8_t num);
@@ -104,6 +107,29 @@ void udp_server_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p
 	  reqID = (unsigned short)data[0]<<8;
 	  reqID |= data[1];
 	  switch(data[2]){
+	  	  case 0xEC:// restart in boot mode
+	  		  answer[0] = data[0];
+	  		  answer[1] = data[1];
+	  		  answer[2] = 0xEC;
+	  		  crc = GetCRC16((unsigned char*)answer,3);
+	  		  answer[3]=crc>>8;
+	  		  answer[4]=crc&0xFF;
+	  		  send_udp_data(upcb, addr, port,5);
+	  		  EE_WriteVariable(VirtAddVarTab[1],0);
+	  		  HAL_Delay(50);
+	  		  NVIC_SystemReset();
+	  		  break;
+	  		case 0xED:// reset
+	  		  answer[0] = data[0];
+	  		  answer[1] = data[1];
+	  		  answer[2] = 0xED;
+	  		  crc = GetCRC16((unsigned char*)answer,3);
+	  		  answer[3]=crc>>8;
+	  		  answer[4]=crc&0xFF;
+	  		  send_udp_data(upcb, addr, port,5);
+	  		  HAL_Delay(50);
+	  		  NVIC_SystemReset();
+	  		  break;
 	  	  case 0xD2:
 	  		  answer[0] = data[0];
 	  		  answer[1] = data[1];

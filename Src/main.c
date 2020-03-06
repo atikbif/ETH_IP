@@ -65,6 +65,7 @@
 #include <string.h>
 #include "canLogger.h"
 #include "fsmc_flash.h"
+#include "eeprom.h"
 
 /* USER CODE END Includes */
 
@@ -81,6 +82,8 @@
 #define NAND_PAGE_SIZE          ((uint16_t)0x0800) /* 2 * 1024 bytes per page w/o Spare Area */
 #define BUFFER_SIZE             (NAND_PAGE_SIZE)
 
+#define	EEPROM_KEY_VALUE	0x3238
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -96,6 +99,8 @@ extern unsigned short bl_num;
 extern unsigned short page_num;
 
 extern NAND_HandleTypeDef hnand1;
+
+uint16_t VirtAddVarTab[NB_OF_VAR]={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
 
 NAND_IDTypeDef NAND_ID;
 
@@ -257,6 +262,8 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
+  uint16_t ee_key = 0;
+
   /* USER CODE END 1 */
   
 
@@ -274,6 +281,15 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
 
+  HAL_FLASH_Unlock();
+  EE_Init();
+
+  EE_ReadVariable(VirtAddVarTab[0],  &ee_key);
+  if(ee_key==EEPROM_KEY_VALUE) {
+  	EE_ReadVariable(VirtAddVarTab[1],  &ee_key);
+  	if(ee_key!=2) EE_WriteVariable(VirtAddVarTab[1],2);
+  }
+
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -285,6 +301,7 @@ int main(void)
   MX_FSMC_Init();
   /* USER CODE BEGIN 2 */
 
+  __enable_irq();
   HAL_NAND_Read_ID(&hnand1, &NAND_ID);
 
 
